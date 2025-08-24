@@ -1,20 +1,32 @@
 {
   "name": "openmate",
-  "version": "1.0.1",
-  "description": "Quickly open local repos in Windsurf or VS Code or Cursor via short names",
+  "version": "1.0.2",
+  "description": "Quickly open local repositories in Windsurf, VS Code, or Cursor using short names for maximum productivity",
   "bin": {
     "om": "./bin/om.js"
   },
   "keywords": [
     "cli",
+    "repository-manager",
     "repo",
     "vscode",
     "windsurf",
     "cursor",
-    "productivity"
+    "productivity",
+    "quick-open",
+    "open repositories",
+    "developer tools"
   ],
   "author": "Pai",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vivekvpai/OpenMate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vivekvpai/OpenMate/issues"
+  },
+  "homepage": "https://github.com/vivekvpai/OpenMate#readme",
   "engines": {
     "node": ">=16"
   },
