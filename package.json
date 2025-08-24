@@ -1,5 +1,5 @@
 {
-  "name": "OpenMate",
+  "name": "openmate",
   "version": "1.0.0",
   "description": "Quickly open local repos in Windsurf or VS Code via short names",
   "bin": {
