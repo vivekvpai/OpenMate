@@ -1,7 +1,7 @@
 {
   "name": "openmate",
-  "version": "1.0.0",
-  "description": "Quickly open local repos in Windsurf or VS Code via short names",
+  "version": "1.0.1",
+  "description": "Quickly open local repos in Windsurf or VS Code or Cursor via short names",
   "bin": {
     "om": "./bin/om.js"
   },
@@ -10,6 +10,7 @@
     "repo",
     "vscode",
     "windsurf",
+    "cursor",
     "productivity"
   ],
   "author": "Pai",
@@ -18,7 +19,7 @@
     "node": ">=16"
   },
   "scripts": {
-    "reinstall-global": "npm uninstall -g OpenMate && npm install -g ."
+    "reinstall-global": "npm uninstall -g openmate && npm install -g ."
   },
   "dependencies": {
     "cli-table3": "^0.6.5"
