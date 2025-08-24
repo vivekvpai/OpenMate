@@ -14,7 +14,7 @@
 
 const fs = require("fs");
 const os = require("os");
-const Table = require('cli-table3');
+const Table = require("cli-table3");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -66,7 +66,9 @@ function expandPath(input) {
 
 function assertDirExists(dirPath, label = "path") {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
-    console.error(`Invalid ${label}: "${dirPath}" is not an existing directory.`);
+    console.error(
+      `Invalid ${label}: "${dirPath}" is not an existing directory.`
+    );
     process.exit(1);
   }
 }
@@ -77,7 +79,9 @@ function cmdAdd(name, rawPath) {
 
   const store = loadStore();
   if (store.repos[key]) {
-    console.error(`❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`);
+    console.error(
+      `❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`
+    );
     process.exit(1);
   }
 
@@ -95,7 +99,9 @@ function cmdUpdate(name, rawPath) {
 
   const store = loadStore();
   if (!store.repos[key]) {
-    console.error(`❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`);
+    console.error(
+      `❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`
+    );
     process.exit(1);
   }
 
@@ -132,8 +138,8 @@ function cmdList() {
   console.log("Stored repos:");
 
   const table = new Table({
-    head: ['#', 'Name', 'Repo Path'],
-    colWidths: [5, 25, 60]
+    head: ["#", "Name", "Repo Path"],
+    colWidths: [5, 25, 60],
   });
 
   names.sort().forEach((n, i) => {
@@ -159,10 +165,13 @@ function openVS(repoPath) {
       { cmd: "code", args: [repoPath] },
       { cmd: "code-insiders", args: [repoPath] },
     ],
-    { onFail: () => {
-        console.error("❌ Could not find VS Code CLI ('code'). Install the command in PATH. See VS Code docs.");
+    {
+      onFail: () => {
+        console.error(
+          "❌ Could not find VS Code CLI ('code'). Install the command in PATH. See VS Code docs."
+        );
         process.exit(1);
-      }
+      },
     }
   );
 }
@@ -174,10 +183,13 @@ function openWS(repoPath) {
       { cmd: "windsurf", args: [repoPath] },
       ...(isMac ? [{ cmd: "open", args: ["-a", "Windsurf", repoPath] }] : []),
     ],
-    { onFail: () => {
-        console.error("❌ Could not find Windsurf CLI ('windsurf'). Ensure Windsurf is installed and its CLI is on PATH.");
+    {
+      onFail: () => {
+        console.error(
+          "❌ Could not find Windsurf CLI ('windsurf'). Ensure Windsurf is installed and its CLI is on PATH."
+        );
         process.exit(1);
-      }
+      },
     }
   );
 }
@@ -189,10 +201,13 @@ function openCS(repoPath) {
       { cmd: "cursor", args: [repoPath] },
       ...(isMac ? [{ cmd: "open", args: ["-a", "Cursor", repoPath] }] : []),
     ],
-    { onFail: () => {
-        console.error("❌ Could not find Cursor CLI ('cursor'). Ensure Cursor is installed and its CLI is on PATH.");
+    {
+      onFail: () => {
+        console.error(
+          "❌ Could not find Cursor CLI ('cursor'). Ensure Cursor is installed and its CLI is on PATH."
+        );
         process.exit(1);
-      }
+      },
     }
   );
 }
@@ -204,7 +219,11 @@ function attemptLaunch(candidates, { onFail }) {
     if (i >= candidates.length) return onFail();
     const { cmd, args } = candidates[i];
 
-    const child = spawn(cmd, args, { stdio: "ignore", detached: true, shell: true });
+    const child = spawn(cmd, args, {
+      stdio: "ignore",
+      detached: true,
+      shell: true,
+    });
     child.on("error", () => tryOne(i + 1));
     child.unref?.();
   };
@@ -239,10 +258,10 @@ function cmdOpen(name, kind) {
 
 function getVersion() {
   try {
-    const pkg = require('../package.json');
+    const pkg = require("../package.json");
     return pkg.version;
   } catch (e) {
-    return 'unknown';
+    return "unknown";
   }
 }
 
@@ -265,7 +284,7 @@ Usage:
 (function main() {
   const [, , cmd, name, maybePath] = process.argv;
 
-  if (process.argv.includes('--version') || process.argv.includes('-v')) {
+  if (process.argv.includes("--version") || process.argv.includes("-v")) {
     console.log(getVersion());
     process.exit(0);
   }
