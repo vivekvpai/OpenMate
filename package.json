@@ -1,0 +1,26 @@
+{
+  "name": "OpenMate",
+  "version": "1.0.0",
+  "description": "Quickly open local repos in Windsurf or VS Code via short names",
+  "bin": {
+    "om": "./bin/om.js"
+  },
+  "keywords": [
+    "cli",
+    "repo",
+    "vscode",
+    "windsurf",
+    "productivity"
+  ],
+  "author": "Pai",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "reinstall-global": "npm uninstall -g OpenMate && npm install -g ."
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5"
+  }
+}
