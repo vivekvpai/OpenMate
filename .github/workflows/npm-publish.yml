@@ -1,13 +1,13 @@
-name: Publish to npm
+name: Publish to npm on Version Commit
 
 on:
   push:
-    tags:
-      - 'v*' # Triggers only on version tags like v1.0.0
+    branches:
+      - main # or your default branch
 
 jobs:
   publish:
-    name: Publish Package to npm
+    if: contains(github.event.head_commit.message, 'version')
     runs-on: ubuntu-latest
 
     steps:
@@ -22,9 +22,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Build (if needed)
-        run: echo "No build step required" # Replace with build command if needed
 
       - name: Publish to npm
         run: npm publish --access public
