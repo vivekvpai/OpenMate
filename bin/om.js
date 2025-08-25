@@ -66,9 +66,7 @@ function expandPath(input) {
 
 function assertDirExists(dirPath, label = "path") {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
-    console.error(
-      `Invalid ${label}: "${dirPath}" is not an existing directory.`
-    );
+    console.error(`Invalid ${label}: "${dirPath}" is not an existing directory.`);
     process.exit(1);
   }
 }
@@ -79,9 +77,7 @@ function cmdAdd(name, rawPath) {
 
   const store = loadStore();
   if (store.repos[key]) {
-    console.error(
-      `❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`
-    );
+    console.error(`❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`);
     process.exit(1);
   }
 
@@ -99,9 +95,7 @@ function cmdUpdate(name, rawPath) {
 
   const store = loadStore();
   if (!store.repos[key]) {
-    console.error(
-      `❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`
-    );
+    console.error(`❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`);
     process.exit(1);
   }
 
@@ -160,56 +154,48 @@ function cmdPath(name) {
 }
 
 function openVS(repoPath) {
-  attemptLaunch(
-    [
-      { cmd: "code", args: [repoPath] },
-      { cmd: "code-insiders", args: [repoPath] },
-    ],
-    {
-      onFail: () => {
-        console.error(
-          "❌ Could not find VS Code CLI ('code'). Install the command in PATH. See VS Code docs."
-        );
-        process.exit(1);
-      },
-    }
-  );
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Visual Studio Code", repoPath], { stdio: "ignore", detached: true });
+  } else {
+    attemptLaunch(
+      [
+        { cmd: "code", args: [repoPath] },
+        { cmd: "code-insiders", args: [repoPath] },
+      ],
+      {
+        onFail: () => {
+          console.error("❌ Could not find VS Code CLI ('code'). Install it via VS Code settings.");
+          process.exit(1);
+        },
+      }
+    );
+  }
 }
 
 function openWS(repoPath) {
-  const isMac = process.platform === "darwin";
-  attemptLaunch(
-    [
-      { cmd: "windsurf", args: [repoPath] },
-      ...(isMac ? [{ cmd: "open", args: ["-a", "Windsurf", repoPath] }] : []),
-    ],
-    {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Windsurf", repoPath], { stdio: "ignore", detached: true });
+  } else {
+    attemptLaunch([{ cmd: "windsurf", args: [repoPath] }], {
       onFail: () => {
-        console.error(
-          "❌ Could not find Windsurf CLI ('windsurf'). Ensure Windsurf is installed and its CLI is on PATH."
-        );
+        console.error("❌ Could not find Windsurf CLI ('windsurf').");
         process.exit(1);
       },
-    }
-  );
+    });
+  }
 }
 
 function openCS(repoPath) {
-  const isMac = process.platform === "darwin";
-  attemptLaunch(
-    [
-      { cmd: "cursor", args: [repoPath] },
-      ...(isMac ? [{ cmd: "open", args: ["-a", "Cursor", repoPath] }] : []),
-    ],
-    {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Cursor", repoPath], { stdio: "ignore", detached: true });
+  } else {
+    attemptLaunch([{ cmd: "cursor", args: [repoPath] }], {
       onFail: () => {
-        console.error(
-          "❌ Could not find Cursor CLI ('cursor'). Ensure Cursor is installed and its CLI is on PATH."
-        );
+        console.error("❌ Could not find Cursor CLI ('cursor').");
         process.exit(1);
       },
-    }
-  );
+    });
+  }
 }
 
 function attemptLaunch(candidates, { onFail }) {

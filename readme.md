@@ -17,10 +17,11 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 ---
 
-## 📌 Note
+## 📌 Notes & OS Compatibility
 
 * Supported editors: **VS Code**, **Windsurf**, and **Cursor**.
 * On **Windows**, use double quotes for paths.
+* On **macOS**, uses `open -a` for apps (no CLI required for editors).
 
 ---
 
@@ -93,16 +94,24 @@ om remove myrepo
 
 ## 🔧 Requirements
 
+### **General**
 * **Node.js** (>= 14.x)
+
+### **Windows**
 * **VS Code**, **Windsurf**, or **Cursor** installed and added to PATH
-* `code`, `windsurf`, or `cursor` commands available in terminal
+* CLI commands `code`, `windsurf`, or `cursor` must be available in terminal
+
+### **macOS**
+* **VS Code**, **Windsurf**, or **Cursor** installed in `/Applications`
+* No CLI needed; uses `open -a` internally
 
 ---
 
 ## 📂 How It Works
 
-* Stores repo names and paths in a local JSON file (`~/.openmate.json`)
+* Stores repo names and paths in a local JSON file (`~/.openmate/repos.json`)
 * Uses system commands to open editors
+* macOS uses `open -a <AppName>` for launching apps
 
 ---
 

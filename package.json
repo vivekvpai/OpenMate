@@ -1,6 +1,6 @@
 {
   "name": "openmate",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Quickly open local repositories in Windsurf, VS Code, or Cursor using short names for maximum productivity",
   "bin": {
     "om": "./bin/om.js"
