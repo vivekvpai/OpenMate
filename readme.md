@@ -6,8 +6,9 @@
 [![GitHub Stars](https://img.shields.io/github/stars/vivekvpai/OpenMate?style=social)](https://github.com/vivekvpai/OpenMate)
 [![License](https://img.shields.io/github/license/vivekvpai/OpenMate)](https://github.com/vivekvpai/OpenMate/blob/main/LICENSE)
 
-
 A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, or **Cursor** with quick shortcuts. Perfect for developers who frequently switch between projects.
+
+✨ **New in v2.0.0**: Now with **Collections** - Group related repositories together and open them all at once!
 
 ---
 
@@ -19,7 +20,8 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 * Open repositories in **Cursor** (`om cs <name>`)
 * Update or remove stored repos
 * Print the stored path of a repo
-* List all stored repositories
+* List all stored repositories and collections
+* **Collections**: Group related repositories together and open them all at once
 * Lightweight and super easy to use
 
 ---
@@ -28,8 +30,6 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 * Supported editors: **VS Code**, **Windsurf**, and **Cursor**.
 * On **Windows**, use double quotes for paths.
-* On **macOS**, uses `open -a` for apps (no CLI required for editors).
-
 ---
 
 ## 📦 Installation
@@ -52,28 +52,63 @@ om --version
 
 ### **Available Commands**
 
+#### Repository Management
 ```
 om add <name> "<path/to/repo>"        Add a repo (no duplicate names)
 om update <name> "<new/path>"         Update stored path for existing name
 om remove <name>                      Remove stored repo
-om vs <name>                          Open repo in VS Code
-om ws <name>                          Open repo in Windsurf
-om cs <name>                          Open repo in Cursor
-om list                               List stored repos
+om list                               List all stored repos
 om path <name>                        Print the stored path
+```
+
+#### Collection Management
+```
+om add -c <name> <repo1,repo2,...>    Add/update a collection of repos
+om update -c <name> <repo1,repo2,...> Update a collection's repos
+om remove -c <name>                   Remove a collection
+om list -c                            List all collections
+```
+
+#### Open Repositories/Collections
+```
+om vs <name>                          Open repo/collection in VS Code
+om ws <name>                          Open repo/collection in Windsurf
+om cs <name>                          Open repo/collection in Cursor
 ```
 
 ---
 
 ### **Examples**
 
+#### Basic Repository Usage
 ```bash
+# Add and open a single repository
 om add myrepo "~/work/my-repo"
 om vs myrepo
 om ws myrepo
 om cs myrepo
+
+# Update or remove a repository
 om update myrepo "/data/projects/my-repo"
 om remove myrepo
+```
+
+#### Working with Collections
+```bash
+# Create a collection of related repositories
+om add -c shopprop stuser,stagent,stapp,stdashboard
+
+# Open all repos in a collection in VS Code
+om vs shopprop
+
+# Update a collection
+om update -c shopprop stuser,stagent,stapp,stdashboard,stapi
+
+# List all collections
+om list -c
+
+# Remove a collection
+om remove -c shopprop
 ```
 
 ---
@@ -87,15 +122,31 @@ om remove myrepo
 
 ---
 
-### Sample Output of `om list`
+### Sample Outputs
 
-| # | Name     | Repo Path         |
-| - | -------- | ----------------- |
-| 1 | project1 | /path/to/project1 |
-| 2 | project2 | /path/to/project2 |
-| 3 | project3 | /path/to/project3 |
-| 4 | frontend | /path/to/frontend |
-| 5 | backend  | /path/to/backend  |
+#### `om list`
+```
+Repositories:
+┌─────┬───────────┬───────────────────────────────┬───────────────────────┐
+│ #   │ Name      │ Path                          │ Added At              │
+├─────┼───────────┼───────────────────────────────┼───────────────────────┤
+│ 1   │ stuser    │ /projects/shopprop-user       │ 2025-08-29T12:00:00Z │
+│ 2   │ stagent   │ /projects/shopprop-agent      │ 2025-08-29T12:00:00Z │
+│ 3   │ stapp     │ /projects/shopprop-app        │ 2025-08-29T12:00:00Z │
+│ 4   │ stdashboard/projects/shopprop-dashboard   │ 2025-08-29T12:00:00Z │
+└─────┴───────────┴───────────────────────────────┴───────────────────────┘
+```
+
+#### `om list -c`
+```
+Collections:
+┌───────────┬───────┬───────────────────────┐
+│ Name      │ Repos │ Updated At            │
+├───────────┼───────┼───────────────────────┤
+│ shopprop  │ 4     │ 2025-08-29T12:00:00Z │
+│ work      │ 3     │ 2025-08-28T10:30:00Z │
+└───────────┴───────┴───────────────────────┘
+```
 
 ---
 

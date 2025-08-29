@@ -26,7 +26,7 @@ function ensureStore() {
   if (!fs.existsSync(STORE_FILE)) {
     fs.writeFileSync(
       STORE_FILE,
-      JSON.stringify({ version: 1, repos: {} }, null, 2),
+      JSON.stringify({ version: 2, repos: {}, collections: {} }, null, 2),
       { mode: 0o600 }
     );
   }
@@ -37,15 +37,21 @@ function loadStore() {
   try {
     const data = JSON.parse(fs.readFileSync(STORE_FILE, "utf8"));
     if (!data.repos) data.repos = {};
+    if (!data.collections) data.collections = {};
+    
+    // Migrate from v1 to v2
+    if (data.version === 1) {
+      data.version = 2;
+      data.collections = {};
+      saveStore(data);
+    }
+    
     return data;
   } catch (e) {
     console.error("Error reading store. Recreating...");
-    fs.writeFileSync(
-      STORE_FILE,
-      JSON.stringify({ version: 1, repos: {} }, null, 2),
-      { mode: 0o600 }
-    );
-    return { version: 1, repos: {} };
+    const defaultStore = { version: 2, repos: {}, collections: {} };
+    fs.writeFileSync(STORE_FILE, JSON.stringify(defaultStore, null, 2), { mode: 0o600 });
+    return defaultStore;
   }
 }
 
@@ -251,30 +257,171 @@ function getVersion() {
   }
 }
 
+// Collection management functions
+function cmdAddToCollection(collectionName, repoList) {
+  const store = loadStore();
+  const collectionKey = normalizeName(collectionName);
+  const repos = repoList.split(',').map(r => normalizeName(r.trim()));
+  
+  // Verify all repos exist
+  const missingRepos = repos.filter(r => !store.repos[r]);
+  if (missingRepos.length > 0) {
+    console.error(`❌ The following repos do not exist: ${missingRepos.join(', ')}`);
+    process.exit(1);
+  }
+  
+  store.collections[collectionKey] = {
+    name: collectionName,
+    repos: [...new Set(repos)], // Remove duplicates
+    updatedAt: new Date().toISOString()
+  };
+  
+  saveStore(store);
+  console.log(`✅ Added ${repos.length} repos to collection "${collectionName}"`);
+}
+
+function cmdUpdateCollection(collectionName, repoList) {
+  const store = loadStore();
+  const collectionKey = normalizeName(collectionName);
+  
+  if (!store.collections[collectionKey]) {
+    console.error(`❌ Collection "${collectionName}" does not exist.`);
+    process.exit(1);
+  }
+  
+  return cmdAddToCollection(collectionName, repoList);
+}
+
+function cmdRemoveCollection(collectionName) {
+  const store = loadStore();
+  const collectionKey = normalizeName(collectionName);
+  
+  if (!store.collections[collectionKey]) {
+    console.error(`❌ Collection "${collectionName}" does not exist.`);
+    process.exit(1);
+  }
+  
+  delete store.collections[collectionKey];
+  saveStore(store);
+  console.log(`✅ Removed collection "${collectionName}"`);
+}
+
+function cmdListCollections() {
+  const store = loadStore();
+  const collections = Object.entries(store.collections);
+  
+  if (collections.length === 0) {
+    console.log("No collections found.");
+    return;
+  }
+  
+  console.log("\nCollections:");
+  const table = new Table({
+    head: ['Name', 'Repos', 'Updated At'],
+    style: { head: ['cyan'] }
+  });
+  
+  collections.forEach(([key, { name, repos, updatedAt }]) => {
+    table.push([name, repos.length, new Date(updatedAt).toLocaleString()]);
+  });
+  
+  console.log(table.toString());
+}
+
 function dieUsage() {
   console.log(`OpenMate (om) v${getVersion()}
 
 Usage:
-  om add <name> "<path>"    Add a new repo with name and path
-  om update <name> "<path>" Update an existing repo's path
-  om remove <name>          Remove a stored repo
-  om list                   List all stored repos
-  om path <name>            Print the path of a repo
-  om vs <name>              Open in VS Code
-  om ws <name>              Open in Windsurf
-  om cs <name>              Open in Cursor
-  om --version              Show version`);
+  Repo Management:
+    om add <name> "<path>"       Add a new repo with name and path
+    om update <name> "<path>"    Update an existing repo's path
+    om remove <name>             Remove a stored repo
+    om list                      List all stored repos
+    om path <name>               Print the path of a repo
+
+  Collection Management:
+    om add -c <name> "<repo1,repo2,...>"    Add/update a collection
+    om update -c <name> "<repo1,repo2,...>" Update a collection's repos
+    om remove -c <name>                   Remove a collection
+    om list -c                            List all collections
+
+  Open Repos/Collections:
+    om vs <name>              Open in VS Code
+    om ws <name>              Open in Windsurf
+    om cs <name>              Open in Cursor
+
+  Other:
+    om --version              Show version`);
   process.exit(1);
 }
 
-(function main() {
-  const [, , cmd, name, maybePath] = process.argv;
+function openCollection(collectionName, kind) {
+  const store = loadStore();
+  const collectionKey = normalizeName(collectionName);
+  const collection = store.collections[collectionKey];
+  
+  if (!collection) {
+    console.error(`❌ Collection "${collectionName}" not found.`);
+    process.exit(1);
+  }
+  
+  console.log(`Opening collection "${collection.name}" (${collection.repos.length} repos)`);
+  
+  // Open each repo in the collection
+  collection.repos.forEach(repoName => {
+    const repo = store.repos[repoName];
+    if (!repo) {
+      console.error(`❌ Repo "${repoName}" not found in collection.`);
+      return;
+    }
+    
+    console.log(`  - ${repoName} (${repo.path})`);
+    switch (kind) {
+      case 'vs': openVS(repo.path); break;
+      case 'ws': openWS(repo.path); break;
+      case 'cs': openCS(repo.path); break;
+    }
+  });
+}
 
-  if (process.argv.includes("--version") || process.argv.includes("-v")) {
+(function main() {
+  const args = process.argv.slice(2);
+  
+  if (args.includes("--version") || args.includes("-v")) {
     console.log(getVersion());
     process.exit(0);
   }
-
+  
+  const cmd = args[0];
+  const isCollectionCmd = args[1] === '-c';
+  
+  // Handle collection commands
+  if (isCollectionCmd) {
+    const subCmd = cmd;
+    const name = args[2];
+    const value = args[3];
+    
+    switch (subCmd) {
+      case 'add':
+        if (!name || !value) dieUsage();
+        return cmdAddToCollection(name, value);
+      case 'update':
+        if (!name || !value) dieUsage();
+        return cmdUpdateCollection(name, value);
+      case 'remove':
+        if (!name) dieUsage();
+        return cmdRemoveCollection(name);
+      case 'list':
+        return cmdListCollections();
+      default:
+        return dieUsage();
+    }
+  }
+  
+  // Handle regular commands
+  const name = args[1];
+  const maybePath = args[2];
+  
   switch ((cmd || "").toLowerCase()) {
     case "add":
       if (!name || !maybePath) dieUsage();
@@ -286,16 +433,20 @@ Usage:
       if (!name) dieUsage();
       return cmdRemove(name);
     case "vs":
-      if (!name) dieUsage();
-      return cmdOpen(name, "vs");
     case "ws":
-      if (!name) dieUsage();
-      return cmdOpen(name, "ws");
     case "cs":
       if (!name) dieUsage();
-      return cmdOpen(name, "cs");
+      // Check if it's a collection
+      const store = loadStore();
+      if (store.collections[normalizeName(name)]) {
+        return openCollection(name, cmd.toLowerCase());
+      }
+      return cmdOpen(name, cmd.toLowerCase());
     case "list":
-      return cmdList();
+      cmdList();
+      console.log();
+      cmdListCollections();
+      return;
     case "path":
       if (!name) dieUsage();
       return cmdPath(name);
