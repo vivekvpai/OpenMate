@@ -472,6 +472,54 @@ function openCollection(collectionName, kind) {
     case "list":
       const showOnlyRepos = args.includes('-r');
       const showOnlyCollections = args.includes('-c');
+      
+      // Get all non-flag arguments after 'list'
+      const nonFlagArgs = args.slice(1).filter(arg => !arg.startsWith('-'));
+      
+      // If there's a non-flag argument that's not a flag, treat it as a collection name
+      if (nonFlagArgs.length > 0 && !showOnlyRepos && !showOnlyCollections) {
+        const collectionName = nonFlagArgs[0];
+        const store = loadStore();
+        const collectionKey = Object.keys(store.collections).find(
+          key => normalizeName(key) === normalizeName(collectionName)
+        );
+        
+        if (collectionKey) {
+          const collection = store.collections[collectionKey];
+          console.log(`\nCollection: ${collection.name} (${collection.repos.length} repos)\n`);
+          
+          const table = new Table({
+            head: ['#', 'Name', 'Repo Path'],
+            colWidths: [5, 25, 80],
+            style: { head: ['cyan'] }
+          });
+          
+          collection.repos.forEach((repoName, index) => {
+            const repo = store.repos[normalizeName(repoName)];
+            table.push([
+              index + 1,
+              repoName,
+              repo ? repo.path : '❌ Repository not found'
+            ]);
+          });
+          
+          console.log(table.toString());
+          return;
+        } else {
+          console.error(`❌ Collection "${collectionName}" not found.`);
+          const collectionEntries = Object.entries(store.collections);
+          if (collectionEntries.length > 0) {
+            console.log("\nAvailable collections:");
+            collectionEntries.forEach(([_, { name }], index) => {
+              console.log(`  ${index + 1}. ${name}`);
+            });
+          } else {
+            console.log("No collections available.");
+          }
+          process.exit(1);
+        }
+      }
+      
       return cmdList(!showOnlyCollections, !showOnlyRepos);
     case "path":
       if (!name) dieUsage();

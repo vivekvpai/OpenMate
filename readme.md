@@ -21,7 +21,10 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 * Update or remove stored repos
 * Print the stored path of a repo
 * List all stored repositories and collections
-* **Collections**: Group related repositories together and open them all at once
+* **Collections**:
+  - Group related repositories together and open them all at once
+  - View detailed repository list for a specific collection (`om list <collection>`)
+  - List all collections with `om list -c`
 * Lightweight and super easy to use
 
 ---
@@ -67,6 +70,7 @@ om add -c <name> <repo1,repo2,...>    Add/update a collection of repos
 om update -c <name> <repo1,repo2,...> Update a collection's repos
 om remove -c <name>                   Remove a collection
 om list -c                            List all collections
+om list <collection>                  Show details of a specific collection
 ```
 
 #### Open Repositories/Collections
@@ -93,22 +97,46 @@ om update myrepo "/data/projects/my-repo"
 om remove myrepo
 ```
 
+#### List Repositories and Collections
+
+```bash
+# List all repositories and collections
+om list
+
+# List only repositories
+om list -r
+
+# List only collections
+om list -c
+
+# View details of a specific collection
+om list <collection-name>
+# Example:
+om list frontend
+
+# When collection doesn't exist
+om list nonexistent
+# Output: ❌ Collection "nonexistent" not found.
+#         Available collections:
+#           1. frontend
+```
+
 #### Working with Collections
 ```bash
 # Create a collection of related repositories
-om add -c shopprop stuser,stagent,stapp,stdashboard
+om add -c frontend webapp,api,dashboard,admin
 
 # Open all repos in a collection in VS Code
-om vs shopprop
+om vs frontend
 
 # Update a collection
-om update -c shopprop stuser,stagent,stapp,stdashboard,stapi
+om update -c frontend webapp,api,dashboard,admin,shared
 
 # List all collections
 om list -c
 
 # Remove a collection
-om remove -c shopprop
+om remove -c frontend
 ```
 
 ---
