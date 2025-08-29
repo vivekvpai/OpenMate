@@ -124,13 +124,13 @@ om list nonexistent
 #### Working with Collections
 ```bash
 # Create a collection of related repositories
-om add -c frontend webapp,api,dashboard,admin
+om add -c frontend "webapp,api,dashboard,admin"
 
 # Open all repos in a collection in VS Code
 om vs frontend
 
 # Update a collection
-om update -c frontend webapp,api,dashboard,admin,shared
+om update -c frontend "webapp,api,dashboard,admin,shared"
 
 # List all collections
 om list -c
