@@ -126,24 +126,65 @@ function cmdRemove(name) {
   console.log(`🗑️  Removed "${name}".`);
 }
 
-function cmdList() {
-  const { repos } = loadStore();
-  const names = Object.keys(repos);
+function cmdList(showRepos = true, showCollections = true) {
+  const store = loadStore();
+  const { repos, collections } = store;
+  const repoEntries = Object.entries(repos);
+  const collectionEntries = Object.entries(collections);
+  
+  // Display repositories if requested
+  if (showRepos) {
+    displayRepositories(repoEntries);
+    if (showCollections && repoEntries.length > 0) {
+      console.log(); // Add spacing between sections
+    }
+  }
+  
+  // Display collections if requested
+  if (showCollections) {
+    displayCollections(collectionEntries, showRepos);
+  }
+}
 
-  if (!names.length) {
-    console.log('No repos stored. Use: om add <name> "/path/to/repo"');
+function displayRepositories(repoEntries) {
+  if (repoEntries.length === 0) {
+    console.log("No repositories found.");
     return;
   }
-
+  
   console.log("Stored repos:");
-
   const table = new Table({
-    head: ["#", "Name", "Repo Path"],
-    colWidths: [5, 25, 60],
+    head: ['#', 'Name', 'Repo Path'],
+    colWidths: [5, 25, 80],
+    style: { head: ['cyan'] }
   });
 
-  names.sort().forEach((n, i) => {
-    table.push([i + 1, n, repos[n].path]);
+  repoEntries.forEach(([name, { path }], index) => {
+    table.push([index + 1, name, path]);
+  });
+
+  console.log(table.toString());
+}
+
+function displayCollections(collectionEntries, showRepos) {
+  if (collectionEntries.length === 0) {
+    console.log(showRepos 
+      ? "No collections found." 
+      : "No collections found. Use 'om list -r' to see repositories.");
+    return;
+  }
+  
+  console.log(showRepos ? "Collections:" : "Stored collections:");
+  
+  const table = new Table({
+    head: ['#', 'Name', 'Repos', 'Repository Names'],
+    colWidths: [5, 20, 10, 50],
+    style: { head: ['cyan'] },
+    wordWrap: true
+  });
+
+  collectionEntries.forEach(([_, { name, repos }], index) => {
+    table.push([index + 1, name, repos.length, repos.join(', ')]);
   });
 
   console.log(table.toString());
@@ -308,24 +349,8 @@ function cmdRemoveCollection(collectionName) {
 
 function cmdListCollections() {
   const store = loadStore();
-  const collections = Object.entries(store.collections);
-  
-  if (collections.length === 0) {
-    console.log("No collections found.");
-    return;
-  }
-  
-  console.log("\nCollections:");
-  const table = new Table({
-    head: ['Name', 'Repos', 'Updated At'],
-    style: { head: ['cyan'] }
-  });
-  
-  collections.forEach(([key, { name, repos, updatedAt }]) => {
-    table.push([name, repos.length, new Date(updatedAt).toLocaleString()]);
-  });
-  
-  console.log(table.toString());
+  const collectionEntries = Object.entries(store.collections);
+  displayCollections(collectionEntries, false);
 }
 
 function dieUsage() {
@@ -343,7 +368,9 @@ Usage:
     om add -c <name> "<repo1,repo2,...>"    Add/update a collection
     om update -c <name> "<repo1,repo2,...>" Update a collection's repos
     om remove -c <name>                   Remove a collection
-    om list -c                            List all collections
+    om list -r               List only repositories
+    om list -c               List only collections
+    om list                  List both repositories and collections
 
   Open Repos/Collections:
     om vs <name>              Open in VS Code
@@ -443,10 +470,9 @@ function openCollection(collectionName, kind) {
       }
       return cmdOpen(name, cmd.toLowerCase());
     case "list":
-      cmdList();
-      console.log();
-      cmdListCollections();
-      return;
+      const showOnlyRepos = args.includes('-r');
+      const showOnlyCollections = args.includes('-c');
+      return cmdList(!showOnlyCollections, !showOnlyRepos);
     case "path":
       if (!name) dieUsage();
       return cmdPath(name);
