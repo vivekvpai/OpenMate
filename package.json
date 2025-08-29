@@ -1,7 +1,7 @@
 {
   "name": "openmate",
-  "version": "2.0.0",
-  "description": "Quickly open local repositories or groups of repositories in Windsurf, VS Code, or Cursor using short names for maximum productivity",
+  "version": "1.1.0",
+  "description": "OpenMate: A fast CLI tool to open local repos or entire collections in VS Code, Windsurf, or Cursor using simple shortcuts for an efficient developer workflow.",
   "bin": {
     "om": "./bin/om.js"
   },
@@ -15,7 +15,15 @@
     "productivity",
     "quick-open",
     "open repositories",
-    "developer tools"
+    "developer tools",
+    "collections",
+    "multi-repo",
+    "project manager",
+    "code shortcuts",
+    "open multiple projects",
+    "workspace manager",
+    "local repos",
+    "dev workflow"
   ],
   "author": "Pai",
   "license": "MIT",
