@@ -21,6 +21,7 @@ const { spawn } = require("child_process");
 const STORE_DIR = path.join(os.homedir(), ".openmate");
 const STORE_FILE = path.join(STORE_DIR, "repos.json");
 
+// other helper functions
 function ensureStore() {
   if (!fs.existsSync(STORE_DIR)) fs.mkdirSync(STORE_DIR, { recursive: true });
   if (!fs.existsSync(STORE_FILE)) {
@@ -38,19 +39,21 @@ function loadStore() {
     const data = JSON.parse(fs.readFileSync(STORE_FILE, "utf8"));
     if (!data.repos) data.repos = {};
     if (!data.collections) data.collections = {};
-    
+
     // Migrate from v1 to v2
     if (data.version === 1) {
       data.version = 2;
       data.collections = {};
       saveStore(data);
     }
-    
+
     return data;
   } catch (e) {
     console.error("Error reading store. Recreating...");
     const defaultStore = { version: 2, repos: {}, collections: {} };
-    fs.writeFileSync(STORE_FILE, JSON.stringify(defaultStore, null, 2), { mode: 0o600 });
+    fs.writeFileSync(STORE_FILE, JSON.stringify(defaultStore, null, 2), {
+      mode: 0o600,
+    });
     return defaultStore;
   }
 }
@@ -72,206 +75,40 @@ function expandPath(input) {
 
 function assertDirExists(dirPath, label = "path") {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
-    console.error(`Invalid ${label}: "${dirPath}" is not an existing directory.`);
-    process.exit(1);
-  }
-}
-
-function cmdAdd(name, rawPath) {
-  const key = normalizeName(name);
-  if (!key) dieUsage();
-
-  const store = loadStore();
-  if (store.repos[key]) {
-    console.error(`❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`);
-    process.exit(1);
-  }
-
-  const absPath = expandPath(rawPath);
-  assertDirExists(absPath);
-
-  store.repos[key] = { path: absPath, addedAt: new Date().toISOString() };
-  saveStore(store);
-  console.log(`✅ Added "${name}" -> ${absPath}`);
-}
-
-function cmdUpdate(name, rawPath) {
-  const key = normalizeName(name);
-  if (!key) dieUsage();
-
-  const store = loadStore();
-  if (!store.repos[key]) {
-    console.error(`❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`);
-    process.exit(1);
-  }
-
-  const absPath = expandPath(rawPath);
-  assertDirExists(absPath);
-
-  store.repos[key].path = absPath;
-  store.repos[key].updatedAt = new Date().toISOString();
-  saveStore(store);
-  console.log(`🔄 Updated "${name}" -> ${absPath}`);
-}
-
-function cmdRemove(name) {
-  const key = normalizeName(name);
-  const store = loadStore();
-  if (!store.repos[key]) {
-    console.error(`❌ Repo "${name}" not found.`);
-    process.exit(1);
-  }
-  delete store.repos[key];
-  saveStore(store);
-  console.log(`🗑️  Removed "${name}".`);
-}
-
-function cmdList(showRepos = true, showCollections = true) {
-  const store = loadStore();
-  const { repos, collections } = store;
-  const repoEntries = Object.entries(repos);
-  const collectionEntries = Object.entries(collections);
-  
-  // Display repositories if requested
-  if (showRepos) {
-    displayRepositories(repoEntries);
-    if (showCollections && repoEntries.length > 0) {
-      console.log(); // Add spacing between sections
-    }
-  }
-  
-  // Display collections if requested
-  if (showCollections) {
-    displayCollections(collectionEntries, showRepos);
-  }
-}
-
-function displayRepositories(repoEntries) {
-  if (repoEntries.length === 0) {
-    console.log("No repositories found.");
-    return;
-  }
-  
-  console.log("Stored repos:");
-  const table = new Table({
-    head: ['#', 'Name', 'Repo Path'],
-    colWidths: [5, 25, 80],
-    style: { head: ['cyan'] }
-  });
-
-  // Sort repositories by name (case-insensitive)
-  repoEntries
-    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, undefined, {sensitivity: 'base'}))
-    .forEach(([name, { path }], index) => {
-      table.push([index + 1, name, path]);
-    });
-
-  console.log(table.toString());
-}
-
-function displayCollections(collectionEntries, showRepos) {
-  if (collectionEntries.length === 0) {
-    console.log(showRepos 
-      ? "No collections found." 
-      : "No collections found. Use 'om list -r' to see repositories.");
-    return;
-  }
-  
-  console.log(showRepos ? "Collections:" : "Stored collections:");
-  
-  const table = new Table({
-    head: ['#', 'Name', 'Repos', 'Repository Names'],
-    colWidths: [5, 20, 10, 50],
-    style: { head: ['cyan'] },
-    wordWrap: true
-  });
-
-  // Sort collections by name (case-insensitive)
-  collectionEntries
-    .sort(([_, { name: nameA }], [__, { name: nameB }]) => 
-      nameA.localeCompare(nameB, undefined, {sensitivity: 'base'}))
-    .forEach(([_, { name, repos }], index) => {
-      // Sort repository names within each collection
-      const sortedRepos = [...repos].sort((a, b) => 
-        a.localeCompare(b, undefined, {sensitivity: 'base'}));
-      table.push([index + 1, name, repos.length, sortedRepos.join(', ')]);
-    });
-
-  console.log(table.toString());
-}
-
-function cmdPath(name) {
-  const key = normalizeName(name);
-  const { repos } = loadStore();
-  if (!repos[key]) {
-    console.error(`❌ Repo "${name}" not found.`);
-    process.exit(1);
-  }
-  console.log(repos[key].path);
-}
-
-function openVS(repoPath) {
-  if (process.platform === "darwin") {
-    spawn("open", ["-a", "Visual Studio Code", repoPath], { stdio: "ignore", detached: true });
-  } else {
-    attemptLaunch(
-      [
-        { cmd: "code", args: [repoPath] },
-        { cmd: "code-insiders", args: [repoPath] },
-      ],
-      {
-        onFail: () => {
-          console.error("❌ Could not find VS Code CLI ('code'). Install it via VS Code settings.");
-          process.exit(1);
-        },
-      }
+    console.error(
+      `Invalid ${label}: "${dirPath}" is not an existing directory.`
     );
+    process.exit(1);
   }
 }
 
-function openWS(repoPath) {
-  if (process.platform === "darwin") {
-    spawn("open", ["-a", "Windsurf", repoPath], { stdio: "ignore", detached: true });
-  } else {
-    attemptLaunch([{ cmd: "windsurf", args: [repoPath] }], {
-      onFail: () => {
-        console.error("❌ Could not find Windsurf CLI ('windsurf').");
-        process.exit(1);
-      },
-    });
-  }
-}
+function dieUsage() {
+  console.log(`OpenMate (om) v${getVersion()}
 
-function openCS(repoPath) {
-  if (process.platform === "darwin") {
-    spawn("open", ["-a", "Cursor", repoPath], { stdio: "ignore", detached: true });
-  } else {
-    attemptLaunch([{ cmd: "cursor", args: [repoPath] }], {
-      onFail: () => {
-        console.error("❌ Could not find Cursor CLI ('cursor').");
-        process.exit(1);
-      },
-    });
-  }
-}
+Usage:
+  Repo Management:
+    om add <name> "<path>"       Add a new repo with name and path
+    om update <name> "<path>"    Update an existing repo's path
+    om remove <name>             Remove a stored repo
+    om list                      List all stored repos
+    om path <name>               Print the path of a repo
 
-function attemptLaunch(candidates, { onFail }) {
-  if (!Array.isArray(candidates) || candidates.length === 0) return onFail();
+  Collection Management:
+    om add -c <name> "<repo1,repo2,...>"    Add/update a collection
+    om update -c <name> "<repo1,repo2,...>" Update a collection's repos
+    om remove -c <name>                   Remove a collection
+    om list -r               List only repositories
+    om list -c               List only collections
+    om list                  List both repositories and collections
 
-  const tryOne = (i) => {
-    if (i >= candidates.length) return onFail();
-    const { cmd, args } = candidates[i];
+  Open Repos/Collections:
+    om vs <name>              Open in VS Code
+    om ws <name>              Open in Windsurf
+    om cs <name>              Open in Cursor
 
-    const child = spawn(cmd, args, {
-      stdio: "ignore",
-      detached: true,
-      shell: true,
-    });
-    child.on("error", () => tryOne(i + 1));
-    child.unref?.();
-  };
-
-  tryOne(0);
+  Other:
+    om --version              Show version`);
+  process.exit(1);
 }
 
 function cmdOpen(name, kind) {
@@ -308,157 +145,407 @@ function getVersion() {
   }
 }
 
+// Repo management functions
+function cmdAdd(name, rawPath) {
+  const key = normalizeName(name);
+  if (!key) dieUsage();
+
+  const store = loadStore();
+  if (store.repos[key]) {
+    console.error(
+      `❌ Repo name "${name}" already exists. Use \"om update ${name} \"<newPath>\"\" to change its path.`
+    );
+    process.exit(1);
+  }
+
+  const absPath = expandPath(rawPath);
+  assertDirExists(absPath);
+
+  store.repos[key] = { path: absPath, addedAt: new Date().toISOString() };
+  saveStore(store);
+  console.log(`✅ Added "${name}" -> ${absPath}`);
+}
+
+function cmdUpdate(name, rawPath) {
+  const key = normalizeName(name);
+  if (!key) dieUsage();
+
+  const store = loadStore();
+  if (!store.repos[key]) {
+    console.error(
+      `❌ Repo "${name}" is not stored. Use \"om add ${name} \"<path>\"\" first.`
+    );
+    process.exit(1);
+  }
+
+  const absPath = expandPath(rawPath);
+  assertDirExists(absPath);
+
+  store.repos[key].path = absPath;
+  store.repos[key].updatedAt = new Date().toISOString();
+  saveStore(store);
+  console.log(`🔄 Updated "${name}" -> ${absPath}`);
+}
+
+function cmdRemove(name) {
+  const key = normalizeName(name);
+  const store = loadStore();
+  if (!store.repos[key]) {
+    console.error(`❌ Repo "${name}" not found.`);
+    process.exit(1);
+  }
+  delete store.repos[key];
+  saveStore(store);
+  console.log(`🗑️  Removed "${name}".`);
+}
+
+function cmdList(showRepos = true, showCollections = true) {
+  const store = loadStore();
+  const { repos, collections } = store;
+  const repoEntries = Object.entries(repos);
+  const collectionEntries = Object.entries(collections);
+
+  // Display repositories if requested
+  if (showRepos) {
+    displayRepositories(repoEntries);
+    if (showCollections && repoEntries.length > 0) {
+      console.log(); // Add spacing between sections
+    }
+  }
+
+  // Display collections if requested
+  if (showCollections) {
+    displayCollections(collectionEntries, showRepos);
+  }
+}
+
 // Collection management functions
 function cmdAddToCollection(collectionName, repoList) {
   const store = loadStore();
   const collectionKey = normalizeName(collectionName);
-  const repos = repoList.split(',').map(r => normalizeName(r.trim()));
-  
+  const repos = repoList.split(",").map((r) => normalizeName(r.trim()));
+
   // Verify all repos exist
-  const missingRepos = repos.filter(r => !store.repos[r]);
+  const missingRepos = repos.filter((r) => !store.repos[r]);
   if (missingRepos.length > 0) {
-    console.error(`❌ The following repos do not exist: ${missingRepos.join(', ')}`);
+    console.error(
+      `❌ The following repos do not exist: ${missingRepos.join(", ")}`
+    );
     process.exit(1);
   }
-  
+
   store.collections[collectionKey] = {
     name: collectionName,
     repos: [...new Set(repos)], // Remove duplicates
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
-  
+
   saveStore(store);
-  console.log(`✅ Added ${repos.length} repos to collection "${collectionName}"`);
+  console.log(
+    `✅ Added ${repos.length} repos to collection "${collectionName}"`
+  );
 }
 
 function cmdUpdateCollection(collectionName, repoList) {
   const store = loadStore();
   const collectionKey = normalizeName(collectionName);
-  
+
   if (!store.collections[collectionKey]) {
     console.error(`❌ Collection "${collectionName}" does not exist.`);
     process.exit(1);
   }
-  
+
   return cmdAddToCollection(collectionName, repoList);
 }
 
 function cmdRemoveCollection(collectionName) {
   const store = loadStore();
   const collectionKey = normalizeName(collectionName);
-  
+
   if (!store.collections[collectionKey]) {
     console.error(`❌ Collection "${collectionName}" does not exist.`);
     process.exit(1);
   }
-  
+
   delete store.collections[collectionKey];
   saveStore(store);
   console.log(`✅ Removed collection "${collectionName}"`);
 }
 
-function cmdListCollections() {
-  const store = loadStore();
-  const collectionEntries = Object.entries(store.collections);
-  displayCollections(collectionEntries, false);
+function findCollection(store, collectionName) {
+  const normalizedTarget = normalizeName(collectionName);
+  const collectionKey = Object.keys(store.collections).find(
+    (key) => normalizeName(key) === normalizedTarget
+  );
+  return collectionKey
+    ? { ...store.collections[collectionKey], key: collectionKey }
+    : null;
 }
 
-function dieUsage() {
-  console.log(`OpenMate (om) v${getVersion()}
+function displayCollectionRepos(collection, store) {
+  console.log(
+    `\nCollection: ${collection.name} (${collection.repos.length} repos)\n`
+  );
 
-Usage:
-  Repo Management:
-    om add <name> "<path>"       Add a new repo with name and path
-    om update <name> "<path>"    Update an existing repo's path
-    om remove <name>             Remove a stored repo
-    om list                      List all stored repos
-    om path <name>               Print the path of a repo
+  const table = new Table({
+    head: ["#", "Name", "Repo Path"],
+    colWidths: [5, 25, 80],
+    style: { head: ["cyan"] },
+  });
 
-  Collection Management:
-    om add -c <name> "<repo1,repo2,...>"    Add/update a collection
-    om update -c <name> "<repo1,repo2,...>" Update a collection's repos
-    om remove -c <name>                   Remove a collection
-    om list -r               List only repositories
-    om list -c               List only collections
-    om list                  List both repositories and collections
+  collection.repos.forEach((repoName, index) => {
+    const repo = store.repos[normalizeName(repoName)];
+    table.push([
+      index + 1,
+      repoName,
+      repo ? repo.path : "❌ Repository not found",
+    ]);
+  });
 
-  Open Repos/Collections:
-    om vs <name>              Open in VS Code
-    om ws <name>              Open in Windsurf
-    om cs <name>              Open in Cursor
+  console.log(table.toString());
+}
 
-  Other:
-    om --version              Show version`);
-  process.exit(1);
+function showCollectionNotFound(collectionName, collections) {
+  console.error(`❌ Collection "${collectionName}" not found.`);
+  const collectionEntries = Object.entries(collections);
+
+  if (collectionEntries.length === 0) {
+    console.log("No collections available.");
+    return;
+  }
+
+  console.log("\nAvailable collections:");
+  collectionEntries
+    .sort(([_, a], [__, b]) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    )
+    .forEach(([_, { name }], index) => {
+      console.log(`  ${index + 1}. ${name}`);
+    });
 }
 
 function openCollection(collectionName, kind) {
   const store = loadStore();
   const collectionKey = normalizeName(collectionName);
   const collection = store.collections[collectionKey];
-  
+
   if (!collection) {
     console.error(`❌ Collection "${collectionName}" not found.`);
     process.exit(1);
   }
-  
-  console.log(`Opening collection "${collection.name}" (${collection.repos.length} repos)`);
-  
+
+  console.log(
+    `Opening collection "${collection.name}" (${collection.repos.length} repos)`
+  );
+
   // Open each repo in the collection
-  collection.repos.forEach(repoName => {
+  collection.repos.forEach((repoName) => {
     const repo = store.repos[repoName];
     if (!repo) {
       console.error(`❌ Repo "${repoName}" not found in collection.`);
       return;
     }
-    
+
     console.log(`  - ${repoName} (${repo.path})`);
     switch (kind) {
-      case 'vs': openVS(repo.path); break;
-      case 'ws': openWS(repo.path); break;
-      case 'cs': openCS(repo.path); break;
+      case "vs":
+        openVS(repo.path);
+        break;
+      case "ws":
+        openWS(repo.path);
+        break;
+      case "cs":
+        openCS(repo.path);
+        break;
     }
   });
 }
 
+function displayRepositories(repoEntries) {
+  if (repoEntries.length === 0) {
+    console.log("No repositories found.");
+    return;
+  }
+
+  console.log("Stored repos:");
+  const table = new Table({
+    head: ["#", "Name", "Repo Path"],
+    colWidths: [5, 25, 80],
+    style: { head: ["cyan"] },
+  });
+
+  // Sort repositories by name (case-insensitive)
+  repoEntries
+    .sort(([nameA], [nameB]) =>
+      nameA.localeCompare(nameB, undefined, { sensitivity: "base" })
+    )
+    .forEach(([name, { path }], index) => {
+      table.push([index + 1, name, path]);
+    });
+
+  console.log(table.toString());
+}
+
+function displayCollections(collectionEntries, showRepos) {
+  if (collectionEntries.length === 0) {
+    console.log(
+      showRepos
+        ? "No collections found."
+        : "No collections found. Use 'om list -r' to see repositories."
+    );
+    return;
+  }
+
+  console.log(showRepos ? "Collections:" : "Stored collections:");
+
+  const table = new Table({
+    head: ["#", "Name", "Repos", "Repository Names"],
+    colWidths: [5, 20, 10, 50],
+    style: { head: ["cyan"] },
+    wordWrap: true,
+  });
+
+  // Sort collections by name (case-insensitive)
+  collectionEntries
+    .sort(([_, { name: nameA }], [__, { name: nameB }]) =>
+      nameA.localeCompare(nameB, undefined, { sensitivity: "base" })
+    )
+    .forEach(([_, { name, repos }], index) => {
+      // Sort repository names within each collection
+      const sortedRepos = [...repos].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      );
+      table.push([index + 1, name, repos.length, sortedRepos.join(", ")]);
+    });
+
+  console.log(table.toString());
+}
+
+// Open repo function
+function cmdPath(name) {
+  const key = normalizeName(name);
+  const { repos } = loadStore();
+  if (!repos[key]) {
+    console.error(`❌ Repo "${name}" not found.`);
+    process.exit(1);
+  }
+  console.log(repos[key].path);
+}
+
+function openVS(repoPath) {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Visual Studio Code", repoPath], {
+      stdio: "ignore",
+      detached: true,
+    });
+  } else {
+    attemptLaunch(
+      [
+        { cmd: "code", args: [repoPath] },
+        { cmd: "code-insiders", args: [repoPath] },
+      ],
+      {
+        onFail: () => {
+          console.error(
+            "❌ Could not find VS Code CLI ('code'). Install it via VS Code settings."
+          );
+          process.exit(1);
+        },
+      }
+    );
+  }
+}
+
+function openWS(repoPath) {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Windsurf", repoPath], {
+      stdio: "ignore",
+      detached: true,
+    });
+  } else {
+    attemptLaunch([{ cmd: "windsurf", args: [repoPath] }], {
+      onFail: () => {
+        console.error("❌ Could not find Windsurf CLI ('windsurf').");
+        process.exit(1);
+      },
+    });
+  }
+}
+
+function openCS(repoPath) {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Cursor", repoPath], {
+      stdio: "ignore",
+      detached: true,
+    });
+  } else {
+    attemptLaunch([{ cmd: "cursor", args: [repoPath] }], {
+      onFail: () => {
+        console.error("❌ Could not find Cursor CLI ('cursor').");
+        process.exit(1);
+      },
+    });
+  }
+}
+
+function attemptLaunch(candidates, { onFail }) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return onFail();
+
+  const tryOne = (i) => {
+    if (i >= candidates.length) return onFail();
+    const { cmd, args } = candidates[i];
+
+    const child = spawn(cmd, args, {
+      stdio: "ignore",
+      detached: true,
+      shell: true,
+    });
+    child.on("error", () => tryOne(i + 1));
+    child.unref?.();
+  };
+
+  tryOne(0);
+}
+
+// Main function
 (function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.includes("--version") || args.includes("-v")) {
     console.log(getVersion());
     process.exit(0);
   }
-  
+
   const cmd = args[0];
-  const isCollectionCmd = args[1] === '-c';
-  
+  const isCollectionCmd = args[1] === "-c";
+
   // Handle collection commands
   if (isCollectionCmd) {
     const subCmd = cmd;
     const name = args[2];
     const value = args[3];
-    
+
     switch (subCmd) {
-      case 'add':
+      case "add":
         if (!name || !value) dieUsage();
         return cmdAddToCollection(name, value);
-      case 'update':
+      case "update":
         if (!name || !value) dieUsage();
         return cmdUpdateCollection(name, value);
-      case 'remove':
+      case "remove":
         if (!name) dieUsage();
         return cmdRemoveCollection(name);
-      case 'list':
-        return cmdListCollections();
+      case "list":
+        return cmdList(false, true);
       default:
         return dieUsage();
     }
   }
-  
+
   // Handle regular commands
   const name = args[1];
   const maybePath = args[2];
-  
+
   switch ((cmd || "").toLowerCase()) {
     case "add":
       if (!name || !maybePath) dieUsage();
@@ -479,58 +566,28 @@ function openCollection(collectionName, kind) {
         return openCollection(name, cmd.toLowerCase());
       }
       return cmdOpen(name, cmd.toLowerCase());
-    case "list":
-      const showOnlyRepos = args.includes('-r');
-      const showOnlyCollections = args.includes('-c');
-      
-      // Get all non-flag arguments after 'list'
-      const nonFlagArgs = args.slice(1).filter(arg => !arg.startsWith('-'));
-      
-      // If there's a non-flag argument that's not a flag, treat it as a collection name
+    case "list": {
+      const showOnlyRepos = args.includes("-r");
+      const showOnlyCollections = args.includes("-c");
+      const nonFlagArgs = args.slice(1).filter((arg) => !arg.startsWith("-"));
+
+      // Handle collection listing if a collection name is provided
       if (nonFlagArgs.length > 0 && !showOnlyRepos && !showOnlyCollections) {
         const collectionName = nonFlagArgs[0];
         const store = loadStore();
-        const collectionKey = Object.keys(store.collections).find(
-          key => normalizeName(key) === normalizeName(collectionName)
-        );
-        
-        if (collectionKey) {
-          const collection = store.collections[collectionKey];
-          console.log(`\nCollection: ${collection.name} (${collection.repos.length} repos)\n`);
-          
-          const table = new Table({
-            head: ['#', 'Name', 'Repo Path'],
-            colWidths: [5, 25, 80],
-            style: { head: ['cyan'] }
-          });
-          
-          collection.repos.forEach((repoName, index) => {
-            const repo = store.repos[normalizeName(repoName)];
-            table.push([
-              index + 1,
-              repoName,
-              repo ? repo.path : '❌ Repository not found'
-            ]);
-          });
-          
-          console.log(table.toString());
+        const collection = findCollection(store, collectionName);
+
+        if (collection) {
+          displayCollectionRepos(collection, store);
           return;
         } else {
-          console.error(`❌ Collection "${collectionName}" not found.`);
-          const collectionEntries = Object.entries(store.collections);
-          if (collectionEntries.length > 0) {
-            console.log("\nAvailable collections:");
-            collectionEntries.forEach(([_, { name }], index) => {
-              console.log(`  ${index + 1}. ${name}`);
-            });
-          } else {
-            console.log("No collections available.");
-          }
+          showCollectionNotFound(collectionName, store.collections);
           process.exit(1);
         }
       }
-      
+
       return cmdList(!showOnlyCollections, !showOnlyRepos);
+    }
     case "path":
       if (!name) dieUsage();
       return cmdPath(name);
