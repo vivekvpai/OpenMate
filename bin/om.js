@@ -105,6 +105,8 @@ Usage:
     om vs <name>              Open in VS Code
     om ws <name>              Open in Windsurf
     om cs <name>              Open in Cursor
+    om ij <name>              Open in IntelliJ IDEA
+    om pc <name>              Open in PyCharm
 
   Other:
     om --version              Show version`);
@@ -132,6 +134,14 @@ function cmdOpen(name, kind) {
     case "cs":
       openCS(rec.path);
       console.log(`🎯  Opening "${name}" in Cursor...`);
+      break;
+    case "ij":
+      openIJ(rec.path);
+      console.log(`💡  Opening "${name}" in IntelliJ IDEA...`);
+      break;
+    case "pc":
+      openPC(rec.path);
+      console.log(`🐍  Opening "${name}" in PyCharm...`);
       break;
   }
 }
@@ -357,6 +367,12 @@ function openCollection(collectionName, kind) {
       case "cs":
         openCS(repo.path);
         break;
+      case "ij":
+        openIJ(repo.path);
+        break;
+      case "pc":
+        openPC(repo.path);
+        break;
     }
   });
 }
@@ -480,12 +496,39 @@ function openCS(repoPath) {
     });
   } else {
     attemptLaunch([{ cmd: "cursor", args: [repoPath] }], {
-      onFail: () => {
-        console.error("❌ Could not find Cursor CLI ('cursor').");
-        process.exit(1);
-      },
+      onFail: () => console.error("❌ Cursor CLI not found."),
     });
   }
+}
+
+function openIJ(repoPath) {
+  const intellijPaths = [
+    { cmd: "idea64.exe", args: [repoPath], paths: [
+      path.join(process.env.LOCALAPPDATA, "JetBrains", "IntelliJ*", "bin", "idea64.exe"),
+      path.join(process.env.PROGRAMFILES, "JetBrains", "IntelliJ*", "bin", "idea64.exe")
+    ]},
+    { cmd: "idea", args: [repoPath] },
+    { cmd: "intellij", args: [repoPath] }
+  ];
+  
+  attemptLaunch(intellijPaths, {
+    onFail: () => console.error("❌ IntelliJ IDEA not found. Make sure it's installed and in your PATH."),
+  });
+}
+
+function openPC(repoPath) {
+  const pycharmPaths = [
+    { cmd: "pycharm64.exe", args: [repoPath], paths: [
+      path.join(process.env.LOCALAPPDATA, "Programs", "PyCharm*", "bin", "pycharm64.exe"),
+      path.join(process.env.LOCALAPPDATA, "JetBrains", "PyCharm*", "bin", "pycharm64.exe"),
+      path.join(process.env.PROGRAMFILES, "JetBrains", "PyCharm*", "bin", "pycharm64.exe")
+    ]},
+    { cmd: "pycharm", args: [repoPath] }
+  ];
+  
+  attemptLaunch(pycharmPaths, {
+    onFail: () => console.error("❌ PyCharm not found. Make sure it's installed and in your PATH."),
+  });
 }
 
 function attemptLaunch(candidates, { onFail }) {
@@ -559,6 +602,8 @@ function attemptLaunch(candidates, { onFail }) {
     case "vs":
     case "ws":
     case "cs":
+    case "ij":
+    case "pc":
       if (!name) dieUsage();
       // Check if it's a collection
       const store = loadStore();
