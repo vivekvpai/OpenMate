@@ -171,7 +171,7 @@ function cmdAdd(name, rawPath) {
   const absPath = expandPath(rawPath);
   assertDirExists(absPath);
 
-  store.repos[key] = { path: absPath, addedAt: new Date().toISOString() };
+  store.repos[key] = { path: absPath, updatedAt: new Date().toISOString() };
   saveStore(store);
   console.log(`✅ Added "${name}" -> ${absPath}`);
 }
