@@ -4,8 +4,7 @@
 [![NPM Downloads](https://img.shields.io/npm/dt/openmate)](https://www.npmjs.com/package/openmate)
 [![NPM Version](https://img.shields.io/npm/v/openmate)](https://www.npmjs.com/package/openmate)
 [![GitHub Stars](https://img.shields.io/github/stars/vivekvpai/OpenMate?style=social)](https://github.com/vivekvpai/OpenMate)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/vivekvpai/OpenMate/blob/main/LICENSE)
 
 A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, or **PyCharm** with quick shortcuts. Perfect for developers who frequently switch between projects.
 
