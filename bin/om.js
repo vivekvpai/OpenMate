@@ -502,14 +502,31 @@ function openCS(repoPath) {
 }
 
 function openIJ(repoPath) {
-  const intellijPaths = [
-    { cmd: "idea64.exe", args: [repoPath], paths: [
-      path.join(process.env.LOCALAPPDATA, "JetBrains", "IntelliJ*", "bin", "idea64.exe"),
-      path.join(process.env.PROGRAMFILES, "JetBrains", "IntelliJ*", "bin", "idea64.exe")
-    ]},
-    { cmd: "idea", args: [repoPath] },
-    { cmd: "intellij", args: [repoPath] }
-  ];
+  const isWindows = process.platform === 'win32';
+  const intellijPaths = [];
+
+  if (isWindows) {
+    intellijPaths.push(
+      { cmd: "idea64.exe", args: [repoPath], paths: [
+        path.join(process.env.LOCALAPPDATA, "JetBrains", "IntelliJ*", "bin", "idea64.exe"),
+        path.join(process.env.PROGRAMFILES, "JetBrains", "IntelliJ*", "bin", "idea64.exe")
+      ]}
+    );
+  } else {
+    // macOS paths
+    intellijPaths.push(
+      { cmd: 'open', args: ['-a', 'IntelliJ IDEA', repoPath] },
+      { cmd: 'open', args: ['-a', 'IntelliJ IDEA CE', repoPath] },
+      { cmd: 'open', args: ['-a', 'IntelliJ IDEA Ultimate', repoPath] },
+      { cmd: 'idea', args: [repoPath] }
+    );
+  }
+  
+  // Common paths
+  intellijPaths.push(
+    { cmd: 'idea', args: [repoPath] },
+    { cmd: 'intellij', args: [repoPath] }
+  );
   
   attemptLaunch(intellijPaths, {
     onFail: () => console.error("❌ IntelliJ IDEA not found. Make sure it's installed and in your PATH."),
@@ -517,14 +534,32 @@ function openIJ(repoPath) {
 }
 
 function openPC(repoPath) {
-  const pycharmPaths = [
-    { cmd: "pycharm64.exe", args: [repoPath], paths: [
-      path.join(process.env.LOCALAPPDATA, "Programs", "PyCharm*", "bin", "pycharm64.exe"),
-      path.join(process.env.LOCALAPPDATA, "JetBrains", "PyCharm*", "bin", "pycharm64.exe"),
-      path.join(process.env.PROGRAMFILES, "JetBrains", "PyCharm*", "bin", "pycharm64.exe")
-    ]},
-    { cmd: "pycharm", args: [repoPath] }
-  ];
+  const isWindows = process.platform === 'win32';
+  const pycharmPaths = [];
+
+  if (isWindows) {
+    pycharmPaths.push(
+      { cmd: "pycharm64.exe", args: [repoPath], paths: [
+        path.join(process.env.LOCALAPPDATA, "Programs", "PyCharm*", "bin", "pycharm64.exe"),
+        path.join(process.env.PROGRAMFILES, "JetBrains", "PyCharm*", "bin", "pycharm64.exe")
+      ]}
+    );
+  } else {
+    // macOS paths
+    pycharmPaths.push(
+      { cmd: 'open', args: ['-a', 'PyCharm', repoPath] },
+      { cmd: 'open', args: ['-a', 'PyCharm CE', repoPath] },
+      { cmd: 'open', args: ['-a', 'PyCharm Professional', repoPath] },
+      { cmd: 'pycharm', args: [repoPath] }
+    );
+  }
+  
+  // Common paths
+  pycharmPaths.push(
+    { cmd: 'pycharm', args: [repoPath] },
+    { cmd: 'pycharm-professional', args: [repoPath] },
+    { cmd: 'pycharm-community', args: [repoPath] }
+  );
   
   attemptLaunch(pycharmPaths, {
     onFail: () => console.error("❌ PyCharm not found. Make sure it's installed and in your PATH."),

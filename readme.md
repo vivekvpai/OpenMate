@@ -6,7 +6,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/vivekvpai/OpenMate?style=social)](https://github.com/vivekvpai/OpenMate)
 [![License](https://img.shields.io/github/license/vivekvpai/OpenMate)](https://github.com/vivekvpai/OpenMate/blob/main/LICENSE)
 
-A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, or **Cursor** with quick shortcuts. Perfect for developers who frequently switch between projects.
+A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, or **PyCharm** with quick shortcuts. Perfect for developers who frequently switch between projects.
 
 > **Note:** In this context, **repository** refers to your **local project folder** stored on your computer, not remote (GitHub/GitLab/Bitbucket) repositories.
 
@@ -18,6 +18,8 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 - Open repositories in **VS Code** (`om vs <name>`)
 - Open repositories in **Windsurf** (`om ws <name>`)
 - Open repositories in **Cursor** (`om cs <name>`)
+- Open repositories in **IntelliJ IDEA** (`om ij <name>`)
+- Open repositories in **PyCharm** (`om pc <name>`)
 - Update or remove stored repos
 - Print the stored path of a repo
 - List all stored repositories and collections
@@ -31,7 +33,7 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 ## 📌 Notes & OS Compatibility
 
-- Supported editors: **VS Code**, **Windsurf**, and **Cursor**.
+- Supported editors: **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, and **PyCharm**.
 - On **Windows**, use double quotes for paths.
 
 ---
@@ -82,6 +84,8 @@ om list <collection>                  Show details of a specific collection
 om vs <name>                          Open repo/collection in VS Code
 om ws <name>                          Open repo/collection in Windsurf
 om cs <name>                          Open repo/collection in Cursor
+om ij <name>                          Open repo/collection in IntelliJ IDEA
+om pc <name>                          Open repo/collection in PyCharm
 ```
 
 ---
