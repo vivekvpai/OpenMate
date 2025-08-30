@@ -159,9 +159,12 @@ function displayRepositories(repoEntries) {
     style: { head: ['cyan'] }
   });
 
-  repoEntries.forEach(([name, { path }], index) => {
-    table.push([index + 1, name, path]);
-  });
+  // Sort repositories by name (case-insensitive)
+  repoEntries
+    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, undefined, {sensitivity: 'base'}))
+    .forEach(([name, { path }], index) => {
+      table.push([index + 1, name, path]);
+    });
 
   console.log(table.toString());
 }
@@ -183,9 +186,16 @@ function displayCollections(collectionEntries, showRepos) {
     wordWrap: true
   });
 
-  collectionEntries.forEach(([_, { name, repos }], index) => {
-    table.push([index + 1, name, repos.length, repos.join(', ')]);
-  });
+  // Sort collections by name (case-insensitive)
+  collectionEntries
+    .sort(([_, { name: nameA }], [__, { name: nameB }]) => 
+      nameA.localeCompare(nameB, undefined, {sensitivity: 'base'}))
+    .forEach(([_, { name, repos }], index) => {
+      // Sort repository names within each collection
+      const sortedRepos = [...repos].sort((a, b) => 
+        a.localeCompare(b, undefined, {sensitivity: 'base'}));
+      table.push([index + 1, name, repos.length, sortedRepos.join(', ')]);
+    });
 
   console.log(table.toString());
 }
