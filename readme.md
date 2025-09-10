@@ -1,5 +1,7 @@
 # OpenMate (`om`)
 
+<img src="./assets/gif.gif" alt="OpenMate" width="600">
+
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=vivekvpai.OpenMate)](https://github.com/vivekvpai/OpenMate)
 [![NPM Downloads](https://img.shields.io/npm/dt/openmate)](https://www.npmjs.com/package/openmate)
 [![NPM Version](https://img.shields.io/npm/v/openmate)](https://www.npmjs.com/package/openmate)
