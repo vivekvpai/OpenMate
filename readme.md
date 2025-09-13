@@ -97,7 +97,7 @@ Now you can open this repository in your default editor using:
 om vs repo1  # Opens in VS Code
 # or
 om ws repo1  # Opens in Windsurf
-```
+
 ```
 
 #### Collection Management
@@ -245,22 +245,22 @@ When you run `om list`, it shows all stored repositories and collections:
 
 ```
 Stored repos:
-┌─────┬────────────────────┬───────────────────────────────────────────────┐
-│ #   │ Name               │ Repo Path                                     │
-├─────┼────────────────────┼───────────────────────────────────────────────┤
-│ 1   │ repo1              │ C:\Projects\repo1                             │
-│ 2   │ repo2              │ C:\Projects\repo2                             │
-│ 3   │ repo3              │ C:\Projects\repo3                             │
-│ 4   │ repo4              │ C:\Projects\repo4                             │
-└─────┴────────────────────┴───────────────────────────────────────────────┘
+┌─────┬──────────┬───────────────────────────────┐
+│ #   │ Name     │ Repo Path                     │
+├─────┼──────────┼───────────────────────────────┤
+│ 1   │ repo1    │ C:\Projects\repo1             │
+│ 2   │ repo2    │ C:\Projects\repo2             │
+│ 3   │ repo3    │ C:\Projects\repo3             │
+│ 4   │ repo4    │ C:\Projects\repo4             │
+└─────┴──────────┴───────────────────────────────┘
 
 Collections:
-┌─────┬────────────────────┬──────────┬────────────────────────────────────┐
-│ #   │ Name               │ Repos    │ Repository Names                   │
-├─────┼────────────────────┼──────────┼────────────────────────────────────┤
-│ 1   │ collection1        │ 2        │ repo1, repo2                       │
-│ 2   │ collection2        │ 2        │ repo3, repo4                       │
-└─────┴────────────────────┴──────────┴────────────────────────────────────┘
+┌─────┬────────────────────┬──────────┬───────────────────────────┐
+│ #   │ Name               │ Repos    │ Repository Names          │
+├─────┼────────────────────┼──────────┼───────────────────────────┤
+│ 1   │ collection1        │ 2        │ repo1, repo2              │
+│ 2   │ collection2        │ 2        │ repo3, repo4              │
+└─────┴────────────────────┴──────────┴───────────────────────────┘
 ```
 
 ---
