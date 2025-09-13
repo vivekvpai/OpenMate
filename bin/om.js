@@ -10,6 +10,7 @@
  *   om cs <name>
  *   om list
  *   om path <name>
+ *   om init <name>
  */
 
 const fs = require("fs");
@@ -90,14 +91,14 @@ Usage:
     om add <name> "<path>"       Add a new repo with name and path
     om update <name> "<path>"    Update an existing repo's path
     om remove <name>             Remove a stored repo
-    om list                      List all stored repos
+    om init <name>               Add current directory as a repository
+    om list [-r|-c]              List all repositories (-r: only repos, -c: only collections)
     om path <name>               Print the path of a repo
 
   Collection Management:
     om add -c <name> "<repo1,repo2,...>"    Add/update a collection
     om update -c <name> "<repo1,repo2,...>" Update a collection's repos
     om remove -c <name>                   Remove a collection
-    om list -r               List only repositories
     om list -c               List only collections
     om list                  List both repositories and collections
 
@@ -646,6 +647,9 @@ function attemptLaunch(candidates, { onFail }) {
         return openCollection(name, cmd.toLowerCase());
       }
       return cmdOpen(name, cmd.toLowerCase());
+    case "init":
+      if (!name) dieUsage();
+      return cmdAdd(name, process.cwd());
     case "list": {
       const showOnlyRepos = args.includes("-r");
       const showOnlyCollections = args.includes("-c");
