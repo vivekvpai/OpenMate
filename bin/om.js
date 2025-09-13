@@ -74,6 +74,34 @@ function expandPath(input) {
   return path.resolve(p);
 }
 
+function showSuggestions(partial) {
+  const store = loadStore();
+  const repos = Object.keys(store.repos || {});
+  const collections = Object.keys(store.collections || {});
+  
+  // Filter and sort matches
+  const repoMatches = repos
+    .filter(name => name.toLowerCase().includes(partial.toLowerCase()))
+    .sort();
+    
+  const collectionMatches = collections
+    .filter(name => name.toLowerCase().includes(partial.toLowerCase()))
+    .sort();
+    
+  if (repoMatches.length > 0 || collectionMatches.length > 0) {
+    console.log('\nSuggestions:');
+    if (repoMatches.length > 0) {
+      console.log('Repositories:   ' + repoMatches.join('  '));
+    }
+    if (collectionMatches.length > 0) {
+      console.log('Collections:    ' + collectionMatches.join('  '));
+    }
+    console.log();
+  }
+  
+  return { repos: repoMatches, collections: collectionMatches };
+}
+
 function assertDirExists(dirPath, label = "path") {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
     console.error(
@@ -641,12 +669,22 @@ function attemptLaunch(candidates, { onFail }) {
     case "ij":
     case "pc":
       if (!name) dieUsage();
-      // Check if it's a collection
+      
       const store = loadStore();
-      if (store.collections[normalizeName(name)]) {
-        return openCollection(name, cmd.toLowerCase());
+      const key = normalizeName(name);
+      
+      // Check if exact match exists
+      if (store.repos[key] || store.collections[key]) {
+        if (store.collections[key]) {
+          return openCollection(name, cmd.toLowerCase());
+        }
+        return cmdOpen(name, cmd.toLowerCase());
       }
-      return cmdOpen(name, cmd.toLowerCase());
+      
+      // No exact match, show suggestions
+      console.log(`\nNo exact match for "${name}". Suggestions:`);
+      showSuggestions(name);
+      process.exit(1);
     case "init":
       if (!name) dieUsage();
       return cmdAdd(name, process.cwd());
