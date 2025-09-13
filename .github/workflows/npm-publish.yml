@@ -1,4 +1,4 @@
-name: Publish to npm on Version Commit
+name: Publish to npm on Tag
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 jobs:
   publish:
-    if: contains(github.event.head_commit.message, 'version')
     runs-on: ubuntu-latest
 
     steps:
