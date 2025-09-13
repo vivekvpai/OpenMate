@@ -17,11 +17,17 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 ## ✅ Features
 
 - Add and store repository paths by name
-- Open repositories in **VS Code** (`om vs <name>`)
-- Open repositories in **Windsurf** (`om ws <name>`)
-- Open repositories in **Cursor** (`om cs <name>`)
-- Open repositories in **IntelliJ IDEA** (`om ij <name>`)
-- Open repositories in **PyCharm** (`om pc <name>`)
+- Initialize current directory as a repository with `om init <name>`
+- Open repositories in your favorite editor:
+  - **VS Code** (`om vs <name>`)
+  - **Windsurf** (`om ws <name>`)
+  - **Cursor** (`om cs <name>`)
+  - **IntelliJ IDEA** (`om ij <name>`)
+  - **PyCharm** (`om pc <name>`)
+- Smart suggestions when typing partial repository names:
+  - Shows matching repositories and collections as you type partial name and hit enter
+  - Displays repositories and collections in separate, clearly labeled lists
+  - Works with all editor commands (vs, ws, cs, ij, pc)
 - Update or remove stored repos
 - Print the stored path of a repo
 - List all stored repositories and collections
@@ -63,11 +69,35 @@ om --version
 #### Repository Management
 
 ```
+om init <name>                        Initialize current directory as a repository
 om add <name> "<path/to/repo>"        Add a repo (no duplicate names)
 om update <name> "<new/path>"         Update stored path for existing name
 om remove <name>                      Remove stored repo
 om list                               List all stored repos
 om path <name>                        Print the stored path
+```
+
+### **Examples**
+
+#### Initialize Current Directory as a Repository
+
+Navigate to your project directory and run:
+
+```bash
+om init repo1
+```
+
+**Output:**
+```
+✅ Added "repo1" -> C:/Projects/repo1
+```
+
+Now you can open this repository in your default editor using:
+```bash
+om vs repo1  # Opens in VS Code
+# or
+om ws repo1  # Opens in Windsurf
+```
 ```
 
 #### Collection Management
@@ -298,6 +328,24 @@ Repositories:
 ```
 
 ---
+
+### **Smart Suggestions**
+
+When you type a partial repository or collection name, OpenMate will show you matching suggestions:
+
+```bash
+om ws st
+```
+
+**Sample Output:**
+
+```
+❌ No exact match for "st". Did you mean one of these?
+
+Suggestions:
+Repositories:   stagentdash  stapp  stappdocs  stboxesmfe  stdaisy  stsearch
+Collections:    stagent  stsite  stuser
+```
 
 ### **When Collection Doesn't Exist**
 
