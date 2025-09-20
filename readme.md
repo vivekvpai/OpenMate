@@ -14,6 +14,14 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 ---
 
+# OpenMate UI
+
+OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
+
+> **Note:** supports windows for now
+
+### Download OpenMate UI from [here](https://github.com/vivekvpai/OpenMate/releases).
+
 ## ✅ Features
 
 - Add and store repository paths by name
@@ -36,6 +44,7 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
   - View detailed repository list for a specific collection (`om list <collection>`)
   - List all collections with `om list -c`
 - Lightweight and super easy to use
+- **UI**: OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts. (supports windows for now)
 
 ---
 
@@ -88,11 +97,13 @@ om init repo1
 ```
 
 **Output:**
+
 ```
 ✅ Added "repo1" -> C:/Projects/repo1
 ```
 
 Now you can open this repository in your default editor using:
+
 ```bash
 om vs repo1  # Opens in VS Code
 # or
@@ -363,6 +374,47 @@ Available collections:
 ```
 
 ---
+
+### **OpenMate UI**
+
+OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
+
+[Download](https://github.com/pai-ui/openmate/releases)
+
+**Features:**
+
+> supports all the cli features and also has some extra features.
+
+- Add repositories
+- Edit repositories
+- Add collections
+- Edit collections
+- Open repositories
+- Open collections
+
+**Extra Features:**
+
+- Dark/Light mode
+- Select default editor
+- Search repositories and collections
+
+**Screenshots**
+
+- Main Window
+  ![OpenMate UI](./assets/ui-main-dark.png)
+  ![OpenMate UI](./assets/ui-main-light.png)
+
+- Add Repository
+  ![OpenMate UI](./assets/ui-add-repo.png)
+
+- Edit Repository
+  ![OpenMate UI](./assets/ui-edit-repo.png)
+
+- Add Collection
+  ![OpenMate UI](./assets/ui-add-col.png)
+
+- Edit Collection
+  ![OpenMate UI](./assets/ui-edit-col.png)
 
 ### **Key Tips**
 
