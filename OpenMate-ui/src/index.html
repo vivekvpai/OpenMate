@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>OpenMate</title>
+  </head>
+  <body>
+    <header class="header">
+      <h1>OpenMate</h1>
+      <div class="search-container">
+        <div class="search-row">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search repositories and collections..."
+            class="search-input"
+          />
+          <div class="ide-selector">
+            <select id="ide-selector" class="ide-select">
+              <option value="" disabled>Select IDE</option>
+              <option value="windsurf">Windsurf</option>
+              <option value="vscode">VS Code</option>
+              <option value="cursor">Cursor</option>
+              <option value="intellij">IntelliJ</option>
+              <option value="pycharm">PyCharm</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          id="refresh-btn"
+          class="refresh-btn"
+          aria-label="Refresh data"
+          title="Refresh data"
+        >
+          ↻
+        </button>
+        <button
+          id="theme-toggle"
+          class="theme-toggle"
+          aria-label="Toggle theme"
+        >
+          <span class="theme-icon">🌓</span>
+        </button>
+      </div>
+    </header>
+    <div class="container">
+      <!-- Add Repository Modal -->
+      <div id="add-repo-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Add New Repository</h3>
+          <form id="add-repo-form">
+            <div class="form-group">
+              <label for="repo-name">Repository Name</label>
+              <input
+                class="form-control"
+                type="text"
+                id="repo-name"
+                style="width: 95%"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="repo-path">Repository Path</label>
+              <div class="path-input">
+                <input
+                  class="form-control"
+                  type="text"
+                  id="repo-path"
+                  required
+                />
+                <button type="button" id="browse-path" class="browse-btn">
+                  Browse
+                </button>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Edit Repository Modal -->
+      <div id="edit-repo-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Edit Repository</h3>
+          <form id="edit-repo-form">
+            <input type="hidden" id="edit-original-name" />
+
+            <!-- Current Values (Read-only) -->
+            <div class="form-group">
+              <div class="current-value">
+                <span> Name : </span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-repo-name"
+                ></span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="current-value">
+                <span> Path : </span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-repo-path"
+                ></span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- New Values (Editable) -->
+            <div class="form-group">
+              <label for="edit-repo-name">New Repository Name</label>
+              <input
+                class="form-control"
+                type="text"
+                id="edit-repo-name"
+                style="width: 95%"
+                required
+                placeholder="Enter new name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="edit-repo-path">New Repository Path</label>
+              <div class="path-input">
+                <input
+                  class="form-control"
+                  type="text"
+                  id="edit-repo-path"
+                  required
+                  placeholder="Enter new path or browse"
+                />
+                <button type="button" id="edit-browse-path" class="browse-btn">
+                  Browse
+                </button>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>Repositories</h2>
+          <button id="add-repo-btn" class="add-btn">
+            <span class="btn-icon">+</span> Add Repository
+          </button>
+        </div>
+        <div id="loading-repos">Loading repositories...</div>
+        <div class="table-wrapper">
+          <table id="repos-table" style="display: none">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="repos-list"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add Collection Modal -->
+      <div id="add-collection-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Create New Collection</h3>
+          <form id="add-collection-form">
+            <div>
+              <label for="collection-name">Collection Name</label>
+              <div class="form-group" style="margin-top: 20px; display: flex">
+                <input
+                  type="text"
+                  id="collection-name"
+                  class="form-control"
+                  style="width: 90%; margin-right: 10px"
+                  required
+                />
+
+                <button type="submit" class="btn primary">Create</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Select Repositories</label>
+              <div id="repos-selection" class="repos-selection">
+                <!-- Repositories will be added here by JavaScript -->
+                <div class="loading">Loading repositories...</div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Edit Collection Modal -->
+      <div id="edit-collection-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Edit Collection</h3>
+          <form id="edit-collection-form">
+            <input type="hidden" id="edit-original-collection-name" />
+
+            <div class="form-group">
+              <div id="current-collection-info" class="current-value">
+                <span> Name :</span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-collection-name"
+                ></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="current-value">
+                <span>Repo :</span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-collection-repos"
+                ></span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-collection-name">New Collection Name</label>
+              <input
+                type="text"
+                id="edit-collection-name"
+                class="form-control"
+                style="width: 95%"
+                placeholder="Enter new collection name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Select Repositories</label>
+              <div id="edit-repos-selection" class="repos-selection">
+                <div class="loading">Loading repositories...</div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary">
+                Update Collection
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>Collections</h2>
+          <button id="add-collection-btn" class="add-btn">
+            <span class="btn-icon">+</span> Add Collection
+          </button>
+        </div>
+        <div id="loading-collections">Loading collections...</div>
+
+        <div class="table-wrapper">
+          <table id="collections-table" style="display: none">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Repositories</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="collections-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,660 @@
+:root {
+  --bg-color: #e0e5ec;
+  --text-color: #31344b;
+  --card-bg: rgba(255, 255, 255, 0.25);
+  --card-shadow: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+  --border-color: rgba(255, 255, 255, 0.5);
+  --hover-bg: rgba(255, 255, 255, 0.4);
+  --header-bg: rgba(255, 255, 255, 0.2);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+  --glass-blur: blur(10px);
+  --border-dark: rgba(0, 0, 0, 0.5);
+  --primary-color: #3498db;
+  --primary-hover: #2980b9;
+}
+
+[data-theme="dark"] {
+  --bg-color: #1a1a2e;
+  --text-color: #e6e6e6;
+  --card-bg: rgba(30, 30, 60, 0.5);
+  --card-shadow: 8px 8px 16px #0f0f1a, -8px -8px 16px #252542;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.1);
+  --header-bg: rgba(30, 30, 60, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(255, 255, 255, 0.5);
+  --primary-hover: #2980b9;
+  --primary-color: #3498db;
+}
+
+/* Rotation animation for refresh button */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotating {
+  animation: rotate 0.5s linear infinite;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  margin: auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #e0e5ec 0%, #c2c8d0 100%);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1800px;
+  padding: 0 24px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section {
+  width: 100%;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 16px;
+  border: var(--glass-border);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* For screens smaller than 600px */
+@media only screen and (max-device-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+  }
+
+  .section {
+    width: 100%;
+  }
+}
+
+h1 {
+  color: var(--text-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+  margin: 0;
+}
+.header {
+  max-width: 60rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px 24px;
+  background: var(--header-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 16px;
+  border: var(--glass-border);
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+h2 {
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.refresh-btn,
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0px 0px 8px rgba(0, 0, 0, 0.1),
+    0px 0px 8px rgba(255, 255, 255, 0.5);
+}
+
+.refresh-btn:hover,
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow:
+    0px 0px 12px rgba(0, 0, 0, 0.15),
+    0px 0px 12px rgba(255, 255, 255, 0.6);
+}
+
+.refresh-btn:active,
+.theme-toggle:active {
+  transform: translateY(0);
+  box-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.1),
+    -2px -2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.theme-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--border-color);
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  z-index: -1;
+  border-radius: 16px;
+}
+.table-wrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 260px);
+}
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+th,
+td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+th {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+}
+
+tr {
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+tr:hover {
+  background: var(--hover-bg);
+  transform: translateX(4px);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Add pointer cursor for clickable rows */
+.clickable-repo-row,
+.clickable-collection-row {
+  cursor: pointer;
+}
+
+/* Keep the hover effect for better UX */
+.clickable-repo-row:hover,
+.clickable-collection-row:hover {
+  background-color: var(--hover-bg);
+  opacity: 0.9;
+}
+
+.path {
+  font-family: "SF Mono", "Roboto Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  word-break: break-all;
+  opacity: 0.9;
+}
+
+/* Actions column */
+.actions {
+  width: 50px;
+  text-align: center;
+}
+
+.edit-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  color: #3498db;
+}
+
+.delete-btn {
+  color: #ff6b6b;
+}
+
+.edit-btn:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+  transform: scale(1.1);
+}
+
+.delete-btn:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+  transform: scale(1.1);
+}
+
+.edit-btn:active,
+.delete-btn:active {
+  transform: scale(0.95);
+}
+
+/* Current value display in edit modal */
+.current-value {
+  display: flex;
+  word-break: break-all;
+  font-family: monospace;
+  color: var(--text-color);
+  font-size: 1.1em;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 20px 0;
+  position: relative;
+}
+
+.divider::before {
+  content: "New Values";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* Make sure buttons don't affect row height */
+button {
+  line-height: 1;
+}
+
+[data-theme="light"] .path {
+  color: #000000;
+}
+
+[data-theme="dark"] .path {
+  color: #ffffff;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--card-bg);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 45rem;
+  position: relative;
+  box-shadow: var(--card-shadow);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal h3 {
+  margin-top: 0;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-dark);
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.95em;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--border-dark);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.path-input {
+  display: flex;
+  gap: 8px;
+}
+
+.path-input input {
+  flex: 1;
+}
+
+.browse-btn {
+  padding: 0 15px;
+  background: var(--hover-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.browse-btn:hover {
+  background: var(--hover-bg);
+  opacity: 0.9;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn.primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.btn.secondary:hover {
+  background: var(--hover-bg);
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background: var(--hover-bg);
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* Repos Selection Styles */
+.repos-selection {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--card-bg);
+  margin-top: 8px;
+}
+
+.repo-checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.repo-checkbox-item:hover {
+  background: var(--hover-bg);
+}
+
+.repo-checkbox-item input[type="checkbox"] {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.repo-checkbox-item label {
+  flex: 1;
+  cursor: pointer;
+  margin: 0;
+  font-weight: normal;
+  display: flex;
+  justify-content: space-between;
+}
+
+.repo-checkbox-item .repo-path {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 0.95em;
+  margin-left: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Loading indicator */
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.search-container {
+  width: 60%;
+}
+
+.search-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  border: 1px solid var(--border-dark) !important;
+  border-radius: 4px;
+}
+
+.ide-selector {
+  min-width: 150px;
+}
+
+.ide-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.95em;
+  border: 1px solid var(--border-dark);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.ide-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 1em;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.hidden {
+  display: none !important;
+}
