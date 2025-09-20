@@ -398,6 +398,24 @@ OpenMate UI is a desktop application that allows you to manage and open your loc
 - Select default editor
 - Search repositories and collections
 
+**Screenshots**
+
+- Main Window
+  ![OpenMate UI](./assets/ui-main-dark.png)
+  ![OpenMate UI](./assets/ui-main-light.png)
+
+- Add Repository
+  ![OpenMate UI](./assets/ui-add-repo.png)
+
+- Edit Repository
+  ![OpenMate UI](./assets/ui-edit-repo.png)
+
+- Add Collection
+  ![OpenMate UI](./assets/ui-add-col.png)
+
+- Edit Collection
+  ![OpenMate UI](./assets/ui-edit-col.png)
+
 ### **Key Tips**
 
 - **Use short names (aliases)** for repositories for quick access.
