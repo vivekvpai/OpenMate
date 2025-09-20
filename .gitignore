@@ -1,5 +1,6 @@
 # Node modules
 node_modules/
+openmate-ui/node_modules/
 
 # Optional: log files
 npm-debug.log*
@@ -8,3 +9,8 @@ yarn-error.log*
 
 # Optional: environment files
 .env
+
+# openmate ui build files
+openmate-ui/dist
+openmate-ui/out
+openmate-ui/.webpack
