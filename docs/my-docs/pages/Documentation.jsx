@@ -1,4 +1,4 @@
-import Header from "./components/header.jsx";
+import Header from "./components/Header.jsx";
 import { Routes, Route, useLocation,Navigate } from "react-router-dom";
 import Dropdown from "./components/Dropdown.jsx";
 import RightSidebar from "./components/RightSidebar.jsx";
