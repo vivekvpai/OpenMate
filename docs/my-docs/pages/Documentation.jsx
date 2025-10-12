@@ -1,9 +1,9 @@
-import Header from "./components/header.jsx";
+import Header from "./components/Header.jsx";
 import { Routes, Route, useLocation,Navigate } from "react-router-dom";
 import Dropdown from "./components/Dropdown.jsx";
 import RightSidebar from "./components/RightSidebar.jsx";
-import WhatIsOpenMate from "./index/Introduction/whatIsOpenMate.jsx";
-import HowDoesItWork from "./index/Introduction/howDoesItWork.jsx";
+import WhatIsOpenMate from "./index/Introduction/WhatIsOpenMate.jsx";
+import HowDoesItWork from "./index/Introduction/HowDoesItWork.jsx";
 import Installation from "./index/Getting started/Installation.jsx";
 import ListingPathUtilities from "./index/Getting started/ListingPathUtilities.jsx";
 import AddingRemovingRepositories from "./index/Getting started/AddingRemovingRepositories.jsx";
