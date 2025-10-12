@@ -1,10 +1,40 @@
+import { useState } from "react";
 import Docs from "./Documentation.jsx";
 import { Link, Routes, Route, BrowserRouter } from "react-router-dom";
-import Footer from "./components/Footer.jsx"
+import Footer from "./components/Footer.jsx";
+import CopyBox from "./components/CopyBox.jsx";
+
+// Toast component
+function Toast({ message, show }) {
+  return (
+    <div
+      className={`fixed bottom-4 left-1/2 z-50 px-3 py-3 rounded-4xl text-[14px] shadow-lg font-[400] font-inter border-1 border-gray-600 bg-black text-white transform transition-all duration-500 ease-in-out -translate-x-1/2 ${
+        show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
 
 function App() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   return (
     <BrowserRouter>
+      {/* Toast globally visible */}
+      <Toast message="Copied to Clipboard!" show={copied} />
+
       <Routes>
         <Route
           path="/"
@@ -13,7 +43,7 @@ function App() {
               <div className="bg-black text-white overflow-x-hidden box-border scrollbar overflow-y-scroll">
                 {/* Header */}
                 <header className="fixed top-0 inset-x-0 z-50 w-screen flex mx-auto justify-between border-b border-b-gray-800 h-15 backdrop-blur-md">
-                  <h1 className="text-2xl my-auto ml-6 font-robotoslab">OpenMate</h1>
+                  <img src="public/logo.png" alt="" className="h-10 w-auto ml-6 mt-2" />
                   <div className="flex font-inter text-lg px-8">
                     <nav className="flex my-auto">
                       <Link
@@ -42,17 +72,25 @@ function App() {
                         editor<span className="text-red-600">.</span>
                       </span>
                     </span>
+                    <div>
+                      <button
+                        onClick={() => handleCopy("npm install -g openmate")}
+                        className="text-gray-500 hover:text-gray-400 transition flex items-center gap-1 px-4 pt-4 font-mono cursor-copy"
+                      >
+                        ~npm install -g openmate
+                      </button>
+                    </div>
                   </h1>
                 </section>
 
                 {/* Section 2 */}
                 <section id="part-2" className="px-6">
-                  <h1 className="font-inter text-7xl">
+                  <h1 className="font-inter text-7xl pb-8 ">
                     What does OpenMate do<span className="text-red-600">?</span>
                   </h1>
 
                   {/* Feature #1 */}
-                  <div className="py-20 border-t-2 border-t-gray-800">
+                  <div className="py-20">
                     <div className="flex">
                       <div className="w-1/3 flex font-inter text-7xl justify-center pt-3">
                         <span className="text-red-600">#</span>1
@@ -70,15 +108,15 @@ function App() {
                   {/* Feature #2 */}
                   <div className="py-20 border-t-2 border-t-gray-800">
                     <div className="flex">
+                      <div className="w-1/3 flex font-inter text-7xl justify-center pt-3">
+                        <span className="text-red-600">#</span>2
+                      </div>
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
                           Group related repositories into collections so entire stacks
                           can be launched together with one command
                           <span className="text-red-600 font-bold">.</span>
                         </p>
-                      </div>
-                      <div className="w-1/3 flex font-inter text-7xl justify-center pt-3">
-                        <span className="text-red-600">#</span>2
                       </div>
                     </div>
                   </div>
@@ -102,6 +140,9 @@ function App() {
                   {/* Feature #4 */}
                   <div className="py-20 border-t-2 border-t-gray-800 border-b-2 border-b-gray-800">
                     <div className="flex">
+                      <div className="w-1/3 flex font-inter text-7xl justify-center pt-3">
+                        <span className="text-red-600">#</span>4
+                      </div>
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
                           Use the Windows desktop UI for the same workflow with search,
@@ -109,9 +150,6 @@ function App() {
                           collection editing
                           <span className="text-red-600 font-bold">.</span>
                         </p>
-                      </div>
-                      <div className="w-1/3 flex font-inter text-7xl justify-center pt-3">
-                        <span className="text-red-600">#</span>4
                       </div>
                     </div>
                   </div>

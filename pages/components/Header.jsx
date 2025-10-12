@@ -3,7 +3,7 @@ function Header(){
     return(
         <header className="sticky top-0 inset-x-0 z-50  w-screen flex mx-auto justify-between border-b border-b-gray-900 h-15 backdrop-blur-md ">
         <Link to="/">
-    <h1 className="text-2xl  mt-3.5 ml-6 font-robotoslab ">OpenMate</h1>
+    <img src="public/logo.png" alt="" className="h-10 w-auto ml-6 mt-2" />
     </Link>
   
     <div className="flex font-inter text-lg">

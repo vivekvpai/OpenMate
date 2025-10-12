@@ -23,11 +23,10 @@ function Footer() {
         {/* Column 3: Social / Contact */}
         <div className="flex flex-col space-y-2 px-30">
           <h2 className="text-lg font-inter font-semibold text-white">Connect</h2>
-          <a href="mailto:support@openmate.com" className="text-gray-400 hover:text-red-600 transition font-inter">support@openmate.com</a>
           <div className="flex space-x-4 mt-2 font-inter">
-            <a href="#" className="text-gray-400 hover:text-red-600 transition">Twitter</a>
-            <a href="#" className="text-gray-400 hover:text-red-600 transition">GitHub</a>
-            <a href="#" className="text-gray-400 hover:text-red-600 transition">LinkedIn</a>
+            <a href="https://x.com/Achuta_Rao_" target="blank" className="text-gray-400 hover:text-red-600 transition">Twitter</a>
+            <a href="https://github.com/vivekvpai" target="blank" className="text-gray-400 hover:text-red-600 transition">GitHub</a>
+            <a href="https://www.linkedin.com/in/vivek-v-pai/" target="blank" className="text-gray-400 hover:text-red-600 transition">LinkedIn</a>
           </div>
         </div>
       </div>

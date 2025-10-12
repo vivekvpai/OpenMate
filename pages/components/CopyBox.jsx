@@ -5,7 +5,7 @@ import { Copy } from "lucide-react";
 function Toast({ message, show }) {
   return (
     <div
-      className={`fixed bottom-4 left-1/2 z-50 px-3  rounded-4xl text-[14px] shadow-lg font-[400] font-inter border-1 border-gray-600 bg-black text-white transform transition-all duration-500 ease-in-out -translate-x-1/2 ${
+      className={`fixed bottom-4 left-1/2 z-50 px-4  rounded-4xl text-[14px] shadow-lg font-[400] font-inter border-1 border-gray-600 bg-black text-white transform transition-all duration-500 ease-in-out -translate-x-1/2 ${
         show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
       }`}
     >
