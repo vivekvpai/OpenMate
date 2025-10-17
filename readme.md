@@ -14,6 +14,33 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 ---
 
+## MCP
+
+OpenMate MCP is available as a [Model Context Protocol](https://modelcontextprotocol.org/) server.
+
+### Install
+
+```bash
+npm install -g openmate-mcp
+```
+
+### Use with Claude Desktop / Windsurf / Cursor
+
+Add configuration:
+
+```json
+{
+  "mcpServers": {
+    "openmate": {
+      
+      "command": "openmate-mcp"
+    }
+  }
+}
+```
+
+### More info [here](https://github.com/vivekvpai/OpenMate-MCP).
+
 # OpenMate UI
 
 OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
