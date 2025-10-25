@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@import url('https://rsms.me/inter/inter.css');
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Victor+Mono:ital,wght@0,300..700;1,300..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
+
+@theme {
+  --font-inter: 'Inter', 'Inter Variable', sans-serif;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+@theme {
+  --font-spacemono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Victor+Mono:ital,wght@0,300..700;1,300..700&display=swap");
+
+@theme {
+  --font-victor: "Victor Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
+
+@theme {
+  --font-robotoslab: "Roboto Slab", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+
+/* font variables handled in :root below */
+@layer utilities{
+.scrollbar::-webkit-scrollbar{
+  width: 8px;
+  height: 8px;
+}
+.scrollbar::-webkit-scrollbar-track{
+  background: transparent;
+
+}
+.scrollbar::-webkit-scrollbar-thumb{
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.scrollbar::-webkit-scrollbar-thumb:hover{
+  background-color: rgba(255, 0, 0, 1);
+}
+
+}
