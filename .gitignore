@@ -15,3 +15,6 @@ yarn-error.log*
 openmate-ui/dist
 openmate-ui/out
 openmate-ui/.webpack
+
+# docs
+docs/dist
