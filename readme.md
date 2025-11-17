@@ -12,41 +12,19 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 > **Note:** In this context, **repository** refers to your **local project folder** stored on your computer, not remote (GitHub/GitLab/Bitbucket) repositories.
 
----
+## Table of Contents
 
-# OpenMate UI
-
-OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
-
-> **Note:** supports windows for now
-
-### Download OpenMate UI from [here](https://github.com/vivekvpai/OpenMate/releases).
-
-## ✅ Features
-
-- Add and store repository paths by name
-- Initialize current directory as a repository with `om init <name>`
-- Open repositories in your favorite editor:
-  - **VS Code** (`om vs <name>`)
-  - **Windsurf** (`om ws <name>`)
-  - **Cursor** (`om cs <name>`)
-  - **IntelliJ IDEA** (`om ij <name>`)
-  - **PyCharm** (`om pc <name>`)
-- Smart suggestions when typing partial repository names:
-  - Shows matching repositories and collections as you type partial name and hit enter
-  - Displays repositories and collections in separate, clearly labeled lists
-  - Works with all editor commands (vs, ws, cs, ij, pc)
-- Update or remove stored repos
-- Print the stored path of a repo
-- List all stored repositories and collections
-- **Collections**:
-  - Group related repositories together and open them all at once
-  - View detailed repository list for a specific collection (`om list <collection>`)
-  - List all collections with `om list -c`
-- Lightweight and super easy to use
-- **UI**: OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts. (supports windows for now)
+- [Table of Contents](#table-of-contents)
+- [OpenMate CLI](#openmate-cli)
+- [📦 Installation](#📦-installation)
+- [⚡ Usage](#⚡-usage)
+- [📌 Notes & OS Compatibility](#📌-notes--os-compatibility)
+- [MCP](#mcp)
+- [OpenMate UI](#openmate-ui)
 
 ---
+
+# OpenMate CLI
 
 ## 📌 Notes & OS Compatibility
 
@@ -375,7 +353,7 @@ Available collections:
 
 ---
 
-### **OpenMate UI**
+# **OpenMate UI**
 
 OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
 
@@ -447,6 +425,34 @@ OpenMate UI is a desktop application that allows you to manage and open your loc
 - Stores repo names and paths in a local JSON file (`~/.openmate/repos.json`)
 - Uses system commands to open editors
 - macOS uses `open -a <AppName>` for launching apps
+
+---
+
+# OpenMate MCP
+
+OpenMate MCP is available as a [Model Context Protocol](https://modelcontextprotocol.org/) server.
+
+### Install
+
+```bash
+npm install -g openmate-mcp
+```
+
+### Use with Claude Desktop / Windsurf / Cursor
+
+Add configuration:
+
+```json
+{
+  "mcpServers": {
+    "openmate": {
+      "command": "openmate-mcp"
+    }
+  }
+}
+```
+
+### More info [here](https://github.com/vivekvpai/OpenMate-MCP).
 
 ---
 
