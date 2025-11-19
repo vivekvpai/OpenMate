@@ -367,7 +367,7 @@ Available collections:
 
 OpenMate UI is a desktop application that allows you to manage and open your local repositories in your favorite editor with quick shortcuts.
 
-[Download](https://github.com/vivekvpai/OpenMate/releases/tag/v1.3.3)
+[Download](https://github.com/vivekvpai/OpenMate/tags)
 
 **Features:**
 
