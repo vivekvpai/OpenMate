@@ -1,8 +1,8 @@
 {
   "name": "openmate-ui",
   "productName": "openmate-ui",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "version": "1.1.0",
+  "description": "OpenMate UI : Switch between different IDEs",
   "main": ".webpack/main",
   "win": {
     "icon": "assets/logo.ico"
@@ -26,8 +26,8 @@
   },
   "keywords": [],
   "author": {
-    "name": "vivek-metricdust",
-    "email": "vivek.v@metricdust.com"
+    "name": "vivekvpai",
+    "email": "paivivek002@gmail.com"
   },
   "license": "MIT",
   "devDependencies": {

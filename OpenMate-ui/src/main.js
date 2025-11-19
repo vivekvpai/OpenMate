@@ -45,88 +45,14 @@ const readReposFile = () => {
 };
 
 // Function to open a path using openmate cli
-function openIDE(name, ide, ideName, path){
+function openIDE(name, ide, ideName, path) {
   return new Promise((resolve, reject) => {
     const { exec } = require("child_process");
     exec(`om ${ide} "${name}"`, (error) => {
       if (error) {
-        reject(new Error(`Failed to open ${name} in ${ideName}: ${error.message}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Function to open a path in the default application
-function openInDefaultApplication(path) {
-  const { shell } = require("electron");
-  return shell.openPath(path);
-}
-
-// Function to open in VS Code
-function openInVSCode(name, path) {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`code "${path}"`, (error) => {
-      if (error) {
-        reject(new Error(`Failed to open in VS Code: ${error.message}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Function to open in Windsurf
-function openInWindsurf(path) {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`windsurf "${path}"`, (error) => {
-      if (error) {
-        reject(new Error(`Failed to open in Windsurf: ${error.message}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Function to open in Cursor
-function openInCursor(path) {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`cursor "${path}"`, (error) => {
-      if (error) {
-        reject(new Error(`Failed to open in Cursor: ${error.message}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Function to open in IntelliJ
-function openInIntelliJ(path) {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`idea "${path}"`, (error) => {
-      if (error) {
-        reject(new Error(`Failed to open in IntelliJ: ${error.message}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-// Function to open in PyCharm
-function openInPyCharm(path) {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    exec(`pycharm "${path}"`, (error) => {
-      if (error) {
-        reject(new Error(`Failed to open in PyCharm: ${error.message}`));
+        reject(
+          new Error(`Failed to open ${name} in ${ideName}: ${error.message}`)
+        );
       } else {
         resolve();
       }
@@ -163,28 +89,25 @@ const createWindow = () => {
   ipcMain.handle("open-in-ide", async (event, { name, path, ide }) => {
     try {
       switch (ide) {
-        case "vscode":
-          // await openInVSCode(name, path);
+        case "vs":
           await openIDE(name, "vs", "VS Code", path);
           break;
-        case "windsurf":
-          // await openInWindsurf(name, path);
+        case "ws":
           await openIDE(name, "ws", "Windsurf", path);
           break;
-        case "cursor":
-          // await openInCursor(name, path);
+        case "cs":
           await openIDE(name, "cs", "Cursor", path);
           break;
-        case "intellij":
-          // await openInIntelliJ(name, path);
+        case "ij":
           await openIDE(name, "ij", "IntelliJ", path);
           break;
-        case "pycharm":
-          // await openInPyCharm(name, path);
+        case "pc":
           await openIDE(name, "pc", "PyCharm", path);
           break;
+        case "ag":
+          await openIDE(name, "ag", "Antigravity", path);
+          break;
         default:
-          // await openInDefaultApplication(name, path);
           await openIDE(name, "default", "Default", path);
       }
       return { success: true };

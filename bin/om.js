@@ -136,6 +136,7 @@ Usage:
     om cs <name>              Open in Cursor
     om ij <name>              Open in IntelliJ IDEA
     om pc <name>              Open in PyCharm
+    om ag <name>              Open in Antigravity IDE
 
   Other:
     om --version              Show version`);
@@ -171,6 +172,10 @@ function cmdOpen(name, kind) {
     case "pc":
       openPC(rec.path);
       console.log(`🐍  Opening "${name}" in PyCharm...`);
+      break;
+    case "ag":
+      openAG(rec.path);
+      console.log(`🚀  Opening "${name}" in Antigravity IDE...`);
       break;
   }
 }
@@ -402,6 +407,9 @@ function openCollection(collectionName, kind) {
       case "pc":
         openPC(repo.path);
         break;
+      case "ag":
+        openAG(repo.path);
+        break;
     }
   });
 }
@@ -595,6 +603,19 @@ function openPC(repoPath) {
   });
 }
 
+function openAG(repoPath) {
+  if (process.platform === "darwin") {
+    spawn("open", ["-a", "Antigravity", repoPath], {
+      stdio: "ignore",
+      detached: true,
+    });
+  } else {
+    attemptLaunch([{ cmd: "antigravity", args: [repoPath] }], {
+      onFail: () => console.error("❌ Antigravity IDE not found."),
+    });
+  }
+}
+
 function attemptLaunch(candidates, { onFail }) {
   if (!Array.isArray(candidates) || candidates.length === 0) return onFail();
 
@@ -668,6 +689,7 @@ function attemptLaunch(candidates, { onFail }) {
     case "cs":
     case "ij":
     case "pc":
+    case "ag":
       if (!name) dieUsage();
       
       const store = loadStore();

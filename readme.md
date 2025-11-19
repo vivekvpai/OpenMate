@@ -28,7 +28,7 @@ A fast and friendly CLI tool to manage and open your local repositories in **VS 
 
 ## 📌 Notes & OS Compatibility
 
-- Supported editors: **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, and **PyCharm**.
+- Supported editors: **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, **PyCharm** and **Antigravity**.
 - On **Windows**, use double quotes for paths.
 
 ---
@@ -107,6 +107,7 @@ om ws <name>                          Open repo/collection in Windsurf
 om cs <name>                          Open repo/collection in Cursor
 om ij <name>                          Open repo/collection in IntelliJ IDEA
 om pc <name>                          Open repo/collection in PyCharm
+om ag <name>                          Open repo/collection in Antigravity
 ```
 
 ---
@@ -133,6 +134,15 @@ om ws <repo-name>
 
 # Open the repository in Cursor
 om cs <repo-name>
+
+# Open the repository in IntelliJ IDEA
+om ij <repo-name>
+
+# Open the repository in PyCharm
+om pc <repo-name>
+
+# Open the repository in Antigravity
+om ag <repo-name>
 ```
 
 **Update or remove a repository:**
@@ -398,7 +408,7 @@ OpenMate UI is a desktop application that allows you to manage and open your loc
 
 - **Use short names (aliases)** for repositories for quick access.
 - **Collections save time** when you work on multiple related repositories.
-- **`om vs`**, **`om ws`**, and **`om cs`** let you choose your editor (VS Code, Windsurf, or Cursor).
+- **`om vs`**, **`om ws`**, **`om cs`**, **`om ij`**, **`om pc`** and **`om ag`** let you choose your editor (VS Code, Windsurf, Cursor, IntelliJ IDEA, PyCharm or Antigravity).
 
 ---
 
@@ -410,12 +420,12 @@ OpenMate UI is a desktop application that allows you to manage and open your loc
 
 ### **Windows**
 
-- **VS Code**, **Windsurf**, or **Cursor** installed and added to PATH
-- CLI commands `code`, `windsurf`, or `cursor` must be available in terminal
+- **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, **PyCharm** or **Antigravity** installed and added to PATH
+- CLI commands `code`, `windsurf`, `cursor`, `ij`, `pc` or `ag` must be available in terminal
 
 ### **macOS**
 
-- **VS Code**, **Windsurf**, or **Cursor** installed in `/Applications`
+- **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, **PyCharm** or **Antigravity** installed in `/Applications`
 - No CLI needed; uses `open -a` internally
 
 ---
@@ -438,7 +448,7 @@ OpenMate MCP is available as a [Model Context Protocol](https://modelcontextprot
 npm install -g openmate-mcp
 ```
 
-### Use with Claude Desktop / Windsurf / Cursor
+### Use with Claude Desktop / Windsurf / Cursor / Antigravity
 
 Add configuration:
 
