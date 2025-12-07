@@ -159,6 +159,16 @@ const IDEManager = {
 
   init() {
     this.selector = document.getElementById("ide-selector");
+
+    // Populate global selector options
+    const optionsHtml = AppState.IDE_OPTIONS.map((opt) => {
+      // For global selector, use "Select Default IDE" or similar for the empty option
+      const label = opt.value === "" ? "Select Default IDE" : opt.label;
+      const disabled = opt.value === "" ? "disabled" : "";
+      return `<option value="${opt.value}" ${disabled}>${label}</option>`;
+    }).join("");
+    this.selector.innerHTML = optionsHtml;
+
     this.loadPreference();
     this.bindEvents();
   },
