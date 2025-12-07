@@ -5,6 +5,17 @@ const AppState = {
   repos: [],
   collections: [],
 
+  // Available IDE Options
+  IDE_OPTIONS: [
+    { value: "", label: "Default" },
+    { value: "ag", label: "Antigravity" },
+    { value: "cs", label: "Cursor" },
+    { value: "ws", label: "Windsurf" },
+    { value: "vs", label: "VS Code" },
+    { value: "ij", label: "IntelliJ" },
+    { value: "pc", label: "PyCharm" },
+  ],
+
   setRepos(repos) {
     this.repos = repos;
   },
@@ -141,6 +152,11 @@ const ThemeManager = {
 // IDE Selector Management
 // =======================
 const IDEManager = {
+  // Store per-item preferences in memory
+  // Key: "${type}:${name}" (e.g., "repo:MyRepo" or "collection:MyCol")
+  // Value: ide code (e.g., "cs", "vs")
+  itemPreferences: new Map(),
+
   init() {
     this.selector = document.getElementById("ide-selector");
     this.loadPreference();
@@ -156,6 +172,41 @@ const IDEManager = {
 
   getSelectedIDE() {
     return this.selector.value;
+  },
+
+  async setItemIDE(type, name, ide) {
+    if (!ide) {
+      this.itemPreferences.delete(`${type}:${name}`);
+    } else {
+      this.itemPreferences.set(`${type}:${name}`, ide);
+    }
+
+    try {
+      const data = await window.electronAPI.getReposData();
+      const section = type === "repo" ? "repos" : "collections";
+
+      if (data[section] && data[section][name]) {
+        if (ide) {
+          data[section][name].ide = ide;
+        } else {
+          delete data[section][name].ide;
+        }
+
+        await window.electronAPI.writeReposFile(data);
+        NotificationManager.showSuccess(`Default IDE saved for ${name}`);
+      }
+    } catch (error) {
+      console.error("Error saving IDE preference:", error);
+      NotificationManager.showError("Failed to save IDE preference");
+    }
+  },
+
+  getItemIDE(type, name) {
+    return this.itemPreferences.get(`${type}:${name}`) || this.getSelectedIDE();
+  },
+
+  getRawItemIDE(type, name) {
+    return this.itemPreferences.get(`${type}:${name}`) || "";
   },
 
   bindEvents() {
@@ -404,7 +455,6 @@ class EditRepositoryModal extends Modal {
       if (!data || typeof data !== "object" || !data.repos) {
         throw new Error("Invalid repository data structure");
       }
-
 
       // Check if the repository exists
       if (!data.repos[originalName]) {
@@ -812,13 +862,22 @@ const UIManager = {
   },
 
   processData(data) {
+    // Clear existing item preferences to ensure we match source of truth
+    IDEManager.itemPreferences.clear();
+
     // Process repositories
     if (data.repos) {
-      const repos = Object.entries(data.repos).map(([name, repo]) => ({
-        name,
-        path: repo.path,
-        updatedAt: repo.updatedAt || new Date().toISOString(),
-      }));
+      const repos = Object.entries(data.repos).map(([name, repo]) => {
+        if (repo.ide) {
+          IDEManager.itemPreferences.set(`repo:${name}`, repo.ide);
+        }
+        return {
+          name,
+          path: repo.path,
+          ide: repo.ide,
+          updatedAt: repo.updatedAt || new Date().toISOString(),
+        };
+      });
       AppState.setRepos(repos);
     } else {
       AppState.setRepos([]);
@@ -826,13 +885,22 @@ const UIManager = {
 
     // Process collections
     if (data.collections) {
-      const collections = Object.values(data.collections).map((collection) => ({
-        name: collection.name,
-        repos: Array.isArray(collection.repos)
-          ? collection.repos.join(", ")
-          : "",
-        updatedAt: collection.updatedAt || new Date().toISOString(),
-      }));
+      const collections = Object.values(data.collections).map((collection) => {
+        if (collection.ide) {
+          IDEManager.itemPreferences.set(
+            `collection:${collection.name}`,
+            collection.ide
+          );
+        }
+        return {
+          name: collection.name,
+          repos: Array.isArray(collection.repos)
+            ? collection.repos.join(", ")
+            : "",
+          ide: collection.ide,
+          updatedAt: collection.updatedAt || new Date().toISOString(),
+        };
+      });
       AppState.setCollections(collections);
     } else {
       AppState.setCollections([]);
@@ -869,14 +937,33 @@ const UIManager = {
   },
 
   createRepositoryRow(repo) {
+    const currentIDE = IDEManager.getRawItemIDE("repo", repo.name);
+    const optionsHtml = AppState.IDE_OPTIONS.map(
+      (opt) =>
+        `<option value="${opt.value}" ${
+          opt.value === currentIDE ? "selected" : ""
+        }>${opt.label}</option>`
+    ).join("");
+
     return `
-      <tr data-path="${Utils.formatPath(repo.path)}" data-name="${repo.name}" class="clickable-repo-row">
+      <tr data-path="${Utils.formatPath(repo.path)}" data-name="${
+        repo.name
+      }" class="clickable-repo-row">
         <td><strong>${repo.name}</strong></td>
         <td class="path">${Utils.formatPath(repo.path)}</td>
         <td class="actions">
-          <div style="display: flex; gap: 5px">
-            <button class="edit-btn" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" data-type="repo" title="Edit repository">✏️</button>
-            <button class="delete-btn" data-name="${repo.name}" data-type="repo" title="Delete repository">🗑️</button>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <select class="row-ide-select" data-type="repo" data-name="${
+              repo.name
+            }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
+              ${optionsHtml}
+            </select>
+            <button class="edit-btn" data-name="${repo.name}" data-path="${Utils.formatPath(
+              repo.path
+            )}" data-type="repo" title="Edit repository">✏️</button>
+            <button class="delete-btn" data-name="${
+              repo.name
+            }" data-type="repo" title="Delete repository">🗑️</button>
           </div>
         </td>
       </tr>
@@ -888,6 +975,21 @@ const UIManager = {
     document.querySelectorAll(".clickable-repo-row").forEach((row) => {
       row.addEventListener("click", (e) => this.handleRepositoryClick(e, row));
     });
+
+    // Bind per-row IDE selector events
+    document
+      .querySelectorAll('.row-ide-select[data-type="repo"]')
+      .forEach((select) => {
+        select.addEventListener("change", (e) => {
+          e.stopPropagation();
+          const name = e.target.dataset.name;
+          const ide = e.target.value;
+          IDEManager.setItemIDE("repo", name, ide);
+        });
+
+        // Prevent click propagation
+        select.addEventListener("click", (e) => e.stopPropagation());
+      });
 
     // Bind edit events
     document.querySelectorAll('.edit-btn[data-type="repo"]').forEach((btn) => {
@@ -912,16 +1014,17 @@ const UIManager = {
   },
 
   async handleRepositoryClick(e, row) {
-    if (e.target.tagName === "BUTTON") return;
+    if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") return;
 
-    const selectedIDE = IDEManager.getSelectedIDE();
+    const repoName = row.getAttribute("data-name");
+    const repoPath = row.getAttribute("data-path");
+    const selectedIDE = IDEManager.getItemIDE("repo", repoName);
+
     if (!selectedIDE) {
       NotificationManager.showError("Please select an IDE first");
       return;
     }
 
-    const repoPath = row.getAttribute("data-path");
-    const repoName = row.getAttribute("data-name");
     if (!repoPath) return;
 
     try {
@@ -993,14 +1096,31 @@ const UIManager = {
 
   createCollectionRow(collection) {
     const collectionData = JSON.stringify(collection).replace(/"/g, "&quot;");
+    const currentIDE = IDEManager.getRawItemIDE("collection", collection.name);
+    const optionsHtml = AppState.IDE_OPTIONS.map(
+      (opt) =>
+        `<option value="${opt.value}" ${
+          opt.value === currentIDE ? "selected" : ""
+        }>${opt.label}</option>`
+    ).join("");
+
     return `
       <tr class="clickable-collection-row" data-collection="${collectionData}">
         <td><strong>${collection.name}</strong></td>
         <td>${collection.repos}</td>
         <td class="actions">
-          <div style="display: flex; gap: 5px">
-            <button class="edit-btn" data-name="${collection.name}" data-type="collection" title="Edit collection">✏️</button>
-            <button class="delete-btn" data-name="${collection.name}" data-type="collection" title="Delete collection">🗑️</button>
+          <div style="display: flex; gap: 5px; align-items: center;">
+            <select class="row-ide-select" data-type="collection" data-name="${
+              collection.name
+            }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
+              ${optionsHtml}
+            </select>
+            <button class="edit-btn" data-name="${
+              collection.name
+            }" data-type="collection" title="Edit collection">✏️</button>
+            <button class="delete-btn" data-name="${
+              collection.name
+            }" data-type="collection" title="Delete collection">🗑️</button>
           </div>
         </td>
       </tr>
@@ -1012,6 +1132,21 @@ const UIManager = {
     document.querySelectorAll(".clickable-collection-row").forEach((row) => {
       row.addEventListener("click", (e) => this.handleCollectionClick(e, row));
     });
+
+    // Bind per-row IDE selector events
+    document
+      .querySelectorAll('.row-ide-select[data-type="collection"]')
+      .forEach((select) => {
+        select.addEventListener("change", (e) => {
+          e.stopPropagation();
+          const name = e.target.dataset.name;
+          const ide = e.target.value;
+          IDEManager.setItemIDE("collection", name, ide);
+        });
+
+        // Prevent click propagation
+        select.addEventListener("click", (e) => e.stopPropagation());
+      });
 
     // Bind edit events
     document
@@ -1042,11 +1177,16 @@ const UIManager = {
   },
 
   async handleCollectionClick(e, row) {
-    if (e.target.tagName === "BUTTON") return;
+    if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") return;
 
     try {
       const collection = JSON.parse(row.getAttribute("data-collection"));
       const reposData = await window.electronAPI.getReposData();
+
+      const collectionIDE = IDEManager.getItemIDE(
+        "collection",
+        collection.name
+      );
 
       const repos = collection.repos.split(",").map((repo) => {
         const [name, path, ide] = repo
@@ -1067,7 +1207,7 @@ const UIManager = {
           return;
         }
 
-        const ide = repo.ide || IDEManager.getSelectedIDE();
+        const ide = repo.ide || collectionIDE;
 
         try {
           await window.electronAPI.openInIDE({
