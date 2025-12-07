@@ -1,6 +1,6 @@
 {
   "name": "openmate",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "OpenMate: A fast CLI tool to open local repos or entire collections in VS Code, Windsurf, or Cursor using simple shortcuts for an efficient developer workflow.",
   "bin": {
     "om": "./bin/om.js"

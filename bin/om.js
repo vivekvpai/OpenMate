@@ -78,27 +78,27 @@ function showSuggestions(partial) {
   const store = loadStore();
   const repos = Object.keys(store.repos || {});
   const collections = Object.keys(store.collections || {});
-  
+
   // Filter and sort matches
   const repoMatches = repos
-    .filter(name => name.toLowerCase().includes(partial.toLowerCase()))
+    .filter((name) => name.toLowerCase().includes(partial.toLowerCase()))
     .sort();
-    
+
   const collectionMatches = collections
-    .filter(name => name.toLowerCase().includes(partial.toLowerCase()))
+    .filter((name) => name.toLowerCase().includes(partial.toLowerCase()))
     .sort();
-    
+
   if (repoMatches.length > 0 || collectionMatches.length > 0) {
-    console.log('\nSuggestions:');
+    console.log("\nSuggestions:");
     if (repoMatches.length > 0) {
-      console.log('Repositories:   ' + repoMatches.join('  '));
+      console.log("Repositories:   " + repoMatches.join("  "));
     }
     if (collectionMatches.length > 0) {
-      console.log('Collections:    ' + collectionMatches.join('  '));
+      console.log("Collections:    " + collectionMatches.join("  "));
     }
     console.log();
   }
-  
+
   return { repos: repoMatches, collections: collectionMatches };
 }
 
@@ -137,10 +137,50 @@ Usage:
     om ij <name>              Open in IntelliJ IDEA
     om pc <name>              Open in PyCharm
     om ag <name>              Open in Antigravity IDE
+    om ide <name> <ide>       Set preferred IDE (vs, ws, cs, ij, pc, ag)
 
   Other:
     om --version              Show version`);
   process.exit(1);
+}
+
+function cmdIde(name, ideVal) {
+  const validIdes = ["vs", "ws", "cs", "ij", "pc", "ag"];
+  const key = normalizeName(name);
+  const ide = normalizeName(ideVal);
+
+  if (!validIdes.includes(ide)) {
+    console.error(`❌ Invalid IDE. Must be one of: ${validIdes.join(", ")}`);
+    process.exit(1);
+  }
+
+  const store = loadStore();
+  let found = false;
+
+  if (store.repos[key]) {
+    store.repos[key].ide = ide;
+    store.repos[key].updatedAt = new Date().toISOString();
+    found = true;
+    console.log(
+      `✅ Set preferred IDE for repo "${name}" to ${ide.toUpperCase()}`
+    );
+  }
+
+  if (store.collections[key]) {
+    store.collections[key].ide = ide;
+    store.collections[key].updatedAt = new Date().toISOString();
+    found = true;
+    console.log(
+      `✅ Set preferred IDE for collection "${name}" to ${ide.toUpperCase()}`
+    );
+  }
+
+  if (!found) {
+    console.error(`❌ "${name}" not found in repos or collections.`);
+    process.exit(1);
+  }
+
+  saveStore(store);
 }
 
 function cmdOpen(name, kind) {
@@ -539,67 +579,101 @@ function openCS(repoPath) {
 }
 
 function openIJ(repoPath) {
-  const isWindows = process.platform === 'win32';
+  const isWindows = process.platform === "win32";
   const intellijPaths = [];
 
   if (isWindows) {
-    intellijPaths.push(
-      { cmd: "idea64.exe", args: [repoPath], paths: [
-        path.join(process.env.LOCALAPPDATA, "JetBrains", "IntelliJ*", "bin", "idea64.exe"),
-        path.join(process.env.PROGRAMFILES, "JetBrains", "IntelliJ*", "bin", "idea64.exe")
-      ]}
-    );
+    intellijPaths.push({
+      cmd: "idea64.exe",
+      args: [repoPath],
+      paths: [
+        path.join(
+          process.env.LOCALAPPDATA,
+          "JetBrains",
+          "IntelliJ*",
+          "bin",
+          "idea64.exe"
+        ),
+        path.join(
+          process.env.PROGRAMFILES,
+          "JetBrains",
+          "IntelliJ*",
+          "bin",
+          "idea64.exe"
+        ),
+      ],
+    });
   } else {
     // macOS paths
     intellijPaths.push(
-      { cmd: 'open', args: ['-a', 'IntelliJ IDEA', repoPath] },
-      { cmd: 'open', args: ['-a', 'IntelliJ IDEA CE', repoPath] },
-      { cmd: 'open', args: ['-a', 'IntelliJ IDEA Ultimate', repoPath] },
-      { cmd: 'idea', args: [repoPath] }
+      { cmd: "open", args: ["-a", "IntelliJ IDEA", repoPath] },
+      { cmd: "open", args: ["-a", "IntelliJ IDEA CE", repoPath] },
+      { cmd: "open", args: ["-a", "IntelliJ IDEA Ultimate", repoPath] },
+      { cmd: "idea", args: [repoPath] }
     );
   }
-  
+
   // Common paths
   intellijPaths.push(
-    { cmd: 'idea', args: [repoPath] },
-    { cmd: 'intellij', args: [repoPath] }
+    { cmd: "idea", args: [repoPath] },
+    { cmd: "intellij", args: [repoPath] }
   );
-  
+
   attemptLaunch(intellijPaths, {
-    onFail: () => console.error("❌ IntelliJ IDEA not found. Make sure it's installed and in your PATH."),
+    onFail: () =>
+      console.error(
+        "❌ IntelliJ IDEA not found. Make sure it's installed and in your PATH."
+      ),
   });
 }
 
 function openPC(repoPath) {
-  const isWindows = process.platform === 'win32';
+  const isWindows = process.platform === "win32";
   const pycharmPaths = [];
 
   if (isWindows) {
-    pycharmPaths.push(
-      { cmd: "pycharm64.exe", args: [repoPath], paths: [
-        path.join(process.env.LOCALAPPDATA, "Programs", "PyCharm*", "bin", "pycharm64.exe"),
-        path.join(process.env.PROGRAMFILES, "JetBrains", "PyCharm*", "bin", "pycharm64.exe")
-      ]}
-    );
+    pycharmPaths.push({
+      cmd: "pycharm64.exe",
+      args: [repoPath],
+      paths: [
+        path.join(
+          process.env.LOCALAPPDATA,
+          "Programs",
+          "PyCharm*",
+          "bin",
+          "pycharm64.exe"
+        ),
+        path.join(
+          process.env.PROGRAMFILES,
+          "JetBrains",
+          "PyCharm*",
+          "bin",
+          "pycharm64.exe"
+        ),
+      ],
+    });
   } else {
     // macOS paths
     pycharmPaths.push(
-      { cmd: 'open', args: ['-a', 'PyCharm', repoPath] },
-      { cmd: 'open', args: ['-a', 'PyCharm CE', repoPath] },
-      { cmd: 'open', args: ['-a', 'PyCharm Professional', repoPath] },
-      { cmd: 'pycharm', args: [repoPath] }
+      { cmd: "open", args: ["-a", "PyCharm", repoPath] },
+      { cmd: "open", args: ["-a", "PyCharm CE", repoPath] },
+      { cmd: "open", args: ["-a", "PyCharm Professional", repoPath] },
+      { cmd: "pycharm", args: [repoPath] }
     );
   }
-  
+
   // Common paths
   pycharmPaths.push(
-    { cmd: 'pycharm', args: [repoPath] },
-    { cmd: 'pycharm-professional', args: [repoPath] },
-    { cmd: 'pycharm-community', args: [repoPath] }
+    { cmd: "pycharm", args: [repoPath] },
+    { cmd: "pycharm-professional", args: [repoPath] },
+    { cmd: "pycharm-community", args: [repoPath] }
   );
-  
+
   attemptLaunch(pycharmPaths, {
-    onFail: () => console.error("❌ PyCharm not found. Make sure it's installed and in your PATH."),
+    onFail: () =>
+      console.error(
+        "❌ PyCharm not found. Make sure it's installed and in your PATH."
+      ),
   });
 }
 
@@ -691,10 +765,10 @@ function attemptLaunch(candidates, { onFail }) {
     case "pc":
     case "ag":
       if (!name) dieUsage();
-      
+
       const store = loadStore();
       const key = normalizeName(name);
-      
+
       // Check if exact match exists
       if (store.repos[key] || store.collections[key]) {
         if (store.collections[key]) {
@@ -702,7 +776,7 @@ function attemptLaunch(candidates, { onFail }) {
         }
         return cmdOpen(name, cmd.toLowerCase());
       }
-      
+
       // No exact match, show suggestions
       console.log(`\nNo exact match for "${name}". Suggestions:`);
       showSuggestions(name);
@@ -735,7 +809,36 @@ function attemptLaunch(candidates, { onFail }) {
     case "path":
       if (!name) dieUsage();
       return cmdPath(name);
-    default:
+    case "ide":
+      if (!name || !maybePath) dieUsage();
+      return cmdIde(name, maybePath);
+    default: {
+      // Check if the command is actually a repo or collection name
+      const store = loadStore();
+      const key = normalizeName(cmd);
+      const repo = store.repos[key];
+      const collection = store.collections[key];
+
+      if (repo || collection) {
+        const preferredIde = repo ? repo.ide : collection.ide;
+        if (preferredIde) {
+          if (collection) {
+            return openCollection(cmd, preferredIde);
+          }
+          return cmdOpen(cmd, preferredIde);
+        }
+
+        console.log(
+          `ℹ️  "${cmd}" is a valid ${
+            repo ? "repo" : "collection"
+          }, but no preferred IDE is set.`
+        );
+        console.log(`   To set one: om ide ${cmd} <vs|ws|cs|ij|pc|ag>`);
+        console.log(`   Or use explicit command: om vs ${cmd}`);
+        process.exit(1);
+      }
+
       return dieUsage();
+    }
   }
 })();
