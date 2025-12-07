@@ -60,6 +60,7 @@ om init <name>                        Initialize current directory as a reposito
 om add <name> "<path/to/repo>"        Add a repo (no duplicate names)
 om update <name> "<new/path>"         Update stored path for existing name
 om remove <name>                      Remove stored repo
+om ide <name> <ide>                   Set preferred IDE (vs, ws, cs, ij, pc, ag)
 om list                               List all stored repos
 om path <name>                        Print the stored path
 ```
@@ -108,6 +109,8 @@ om cs <name>                          Open repo/collection in Cursor
 om ij <name>                          Open repo/collection in IntelliJ IDEA
 om pc <name>                          Open repo/collection in PyCharm
 om ag <name>                          Open repo/collection in Antigravity
+om d <name>                           Open repo/collection in preferred IDE
+om <name>                             Alias for `om d <name>` (if preferred IDE is set)
 ```
 
 ---
@@ -154,6 +157,29 @@ om update <repo-name> "<new-path-to-repo>"
 # Remove the repository
 om remove <repo-name>
 ```
+
+#### ✅ **Preferred IDE**
+
+You can set a preferred IDE for any repository or collection. This allows you to open it directly without specifying the editor every time.
+
+**Set a preferred IDE:**
+
+```bash
+om ide <name> vs   # Set VS Code as default
+om ide <name> ws   # Set Windsurf as default
+```
+
+**Open in preferred IDE:**
+
+Once a preferred IDE is set, you can use either of these commands:
+
+```bash
+om d <name>
+# or simply
+om <name>
+```
+
+If no preferred IDE is set, `om d` or `om <name>` will warn you and show usage instructions.
 
 ---
 
