@@ -658,3 +658,96 @@ button {
 .hidden {
   display: none !important;
 }
+
+/* More Button and Popover */
+.action-menu-container {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; /* Anchor for popover */
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4em;
+  padding: 0 4px;
+  color: var(--text-color);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.more-btn:hover {
+  opacity: 1;
+  background-color: var(--hover-bg);
+}
+
+.action-popover {
+  display: none;
+  position: fixed; /* Fixed to viewport to avoid clipping */
+  background-color: var(--card-bg);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  z-index: 9999;
+  min-width: 140px;
+  padding: 4px;
+}
+
+[data-theme="dark"] .action-popover {
+  background: #252538; /* Solid dark background for better contrast */
+  border: 1px solid #3f3f5a;
+}
+
+.action-popover.show {
+  display: flex;
+  flex-direction: column;
+  animation: popoverFadeIn 0.2s ease-out;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popover-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  box-sizing: border-box;
+}
+
+.popover-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.popover-item.delete-btn {
+  color: #ff6b6b;
+}
+
+.popover-item.delete-btn:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+}

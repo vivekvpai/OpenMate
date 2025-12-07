@@ -846,8 +846,58 @@ const UIManager = {
       this.editCollectionModal = new EditCollectionModal();
     }
 
+    // Initialize Global Popover
+    this.globalPopover = document.getElementById("global-action-popover");
+    this.popoverEditBtn = document.getElementById("global-edit-btn");
+    this.popoverDeleteBtn = document.getElementById("global-delete-btn");
+
     this.bindEvents();
+    this.bindPopoverEvents();
     this.refresh();
+  },
+
+  bindPopoverEvents() {
+    // Handle Global Edit Click
+    this.popoverEditBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.globalPopover.classList.remove("show");
+
+      const type = this.globalPopover.dataset.type;
+      const name = this.globalPopover.dataset.name;
+      const path = this.globalPopover.dataset.path;
+      const collectionData = this.globalPopover.dataset.collectionData;
+
+      if (type === "repo") {
+        if (this.handleEditRepository) {
+          this.handleEditRepository({ name, path });
+        }
+      } else if (type === "collection") {
+        try {
+          const data = JSON.parse(collectionData);
+          if (this.editCollectionModal) {
+            this.editCollectionModal.open(data);
+          }
+        } catch (err) {
+          console.error("Error parsing collection data", err);
+        }
+      }
+    });
+
+    // Handle Global Delete Click
+    this.popoverDeleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.globalPopover.classList.remove("show");
+
+      const type = this.globalPopover.dataset.type;
+      const name = this.globalPopover.dataset.name;
+      const btnMock = { getAttribute: (k) => name }; // Mock button interface expected by handlers
+
+      if (type === "repo") {
+        this.handleRepositoryDelete(e, btnMock);
+      } else if (type === "collection") {
+        this.handleCollectionDelete(e, btnMock);
+      }
+    });
   },
 
   bindEvents() {
@@ -855,6 +905,18 @@ const UIManager = {
     const debouncedUpdate = Utils.debounce(() => this.updateDisplay(), 300);
     this.searchInput.addEventListener("input", debouncedUpdate);
     this.refreshBtn.addEventListener("click", () => this.refresh());
+
+    // Global click listener to close popovers
+    window.addEventListener("click", (e) => {
+      if (
+        !e.target.closest(".action-menu-container") &&
+        !e.target.closest(".action-popover")
+      ) {
+        if (this.globalPopover) {
+          this.globalPopover.classList.remove("show");
+        }
+      }
+    });
   },
 
   async refresh() {
@@ -968,12 +1030,10 @@ const UIManager = {
             }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
               ${optionsHtml}
             </select>
-            <button class="edit-btn" data-name="${repo.name}" data-path="${Utils.formatPath(
-              repo.path
-            )}" data-type="repo" title="Edit repository">✏️</button>
-            <button class="delete-btn" data-name="${
-              repo.name
-            }" data-type="repo" title="Delete repository">🗑️</button>
+            
+            <div class="action-menu-container">
+              <button class="more-btn" title="More options" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">⋮</button>
+            </div>
           </div>
         </td>
       </tr>
@@ -1001,30 +1061,53 @@ const UIManager = {
         select.addEventListener("click", (e) => e.stopPropagation());
       });
 
-    // Bind edit events
-    document.querySelectorAll('.edit-btn[data-type="repo"]').forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const name = btn.dataset.name;
-        const path = btn.dataset.path;
-        if (this.handleEditRepository) {
-          this.handleEditRepository({ name, path });
-        }
-      });
-    });
-
-    // Bind delete events
+    // Bind More Button toggle
     document
-      .querySelectorAll('.delete-btn[data-type="repo"]')
+      .querySelectorAll(".action-menu-container .more-btn[data-type='repo']")
       .forEach((btn) => {
-        btn.addEventListener("click", (e) =>
-          this.handleRepositoryDelete(e, btn)
-        );
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.showPopover(e.currentTarget, {
+            type: "repo",
+            name: btn.dataset.name,
+            path: btn.dataset.path,
+          });
+        });
       });
   },
 
+  showPopover(targetBtn, data) {
+    if (!this.globalPopover) return;
+
+    // Set Data
+    this.globalPopover.dataset.type = data.type;
+    this.globalPopover.dataset.name = data.name;
+    this.globalPopover.dataset.path = data.path || "";
+    this.globalPopover.dataset.collectionData = data.collectionData || "";
+
+    // Position
+    const rect = targetBtn.getBoundingClientRect();
+    const popoverWidth = 140;
+
+    // Default to bottom-left relative to button
+    let top = rect.bottom;
+    let left = rect.left - popoverWidth + rect.width;
+
+    // Boundary checks
+    if (left < 10) left = rect.left;
+
+    this.globalPopover.style.top = `${top}px`;
+    this.globalPopover.style.left = `${left}px`;
+    this.globalPopover.classList.add("show");
+  },
+
   async handleRepositoryClick(e, row) {
-    if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") return;
+    if (
+      e.target.closest("button") ||
+      e.target.closest("select") ||
+      e.target.closest(".action-menu-container")
+    )
+      return;
 
     const repoName = row.getAttribute("data-name");
     const repoPath = row.getAttribute("data-path");
@@ -1060,8 +1143,6 @@ const UIManager = {
     e.stopPropagation();
 
     const name = btn.getAttribute("data-name");
-    // if (!confirm(`Are you sure you want to delete repository "${name}"?`))
-    //   return;
 
     const loadingEl = this.showLoadingIndicator("Deleting...");
 
@@ -1125,12 +1206,10 @@ const UIManager = {
             }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
               ${optionsHtml}
             </select>
-            <button class="edit-btn" data-name="${
-              collection.name
-            }" data-type="collection" title="Edit collection">✏️</button>
-            <button class="delete-btn" data-name="${
-              collection.name
-            }" data-type="collection" title="Delete collection">🗑️</button>
+            
+            <div class="action-menu-container">
+              <button class="more-btn" title="More options" data-type="collection" data-collection='${collectionData}' data-name="${collection.name}" onclick="event.stopPropagation()">⋮</button>
+            </div>
           </div>
         </td>
       </tr>
@@ -1158,36 +1237,34 @@ const UIManager = {
         select.addEventListener("click", (e) => e.stopPropagation());
       });
 
-    // Bind edit events
+    // Bind More Button toggle for collections
     document
-      .querySelectorAll('.edit-btn[data-type="collection"]')
+      .querySelectorAll(
+        ".action-menu-container .more-btn[data-type='collection']"
+      )
       .forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          const collectionData = JSON.parse(
-            btn
-              .closest("tr")
-              .getAttribute("data-collection")
-              .replace(/&quot;/g, '"')
-          );
-          if (this.editCollectionModal) {
-            this.editCollectionModal.open(collectionData);
-          }
-        });
-      });
+          // Decode data safely
+          const raw = btn.getAttribute("data-collection") || "";
+          const data = raw.replace(/&quot;/g, '"');
 
-    // Bind delete events
-    document
-      .querySelectorAll('.delete-btn[data-type="collection"]')
-      .forEach((btn) => {
-        btn.addEventListener("click", (e) =>
-          this.handleCollectionDelete(e, btn)
-        );
+          this.showPopover(e.currentTarget, {
+            type: "collection",
+            name: btn.dataset.name,
+            collectionData: data,
+          });
+        });
       });
   },
 
   async handleCollectionClick(e, row) {
-    if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") return;
+    if (
+      e.target.closest("button") ||
+      e.target.closest("select") ||
+      e.target.closest(".action-menu-container")
+    )
+      return;
 
     try {
       const collection = JSON.parse(row.getAttribute("data-collection"));
@@ -1245,8 +1322,6 @@ const UIManager = {
     e.stopPropagation();
 
     const name = btn.getAttribute("data-name");
-    // if (!confirm(`Are you sure you want to delete collection "${name}"?`))
-    //   return;
 
     const loadingEl = this.showLoadingIndicator("Deleting...");
 
