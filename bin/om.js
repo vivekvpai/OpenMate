@@ -138,6 +138,7 @@ Usage:
     om pc <name>              Open in PyCharm
     om ag <name>              Open in Antigravity IDE
     om ide <name> <ide>       Set preferred IDE (vs, ws, cs, ij, pc, ag)
+    om d <name>               Open in preferred IDE (if set)
 
   Other:
     om --version              Show version`);
@@ -763,7 +764,7 @@ function attemptLaunch(candidates, { onFail }) {
     case "cs":
     case "ij":
     case "pc":
-    case "ag":
+    case "ag": {
       if (!name) dieUsage();
 
       const store = loadStore();
@@ -781,6 +782,7 @@ function attemptLaunch(candidates, { onFail }) {
       console.log(`\nNo exact match for "${name}". Suggestions:`);
       showSuggestions(name);
       process.exit(1);
+    }
     case "init":
       if (!name) dieUsage();
       return cmdAdd(name, process.cwd());
@@ -812,6 +814,32 @@ function attemptLaunch(candidates, { onFail }) {
     case "ide":
       if (!name || !maybePath) dieUsage();
       return cmdIde(name, maybePath);
+    case "d": {
+      if (!name) dieUsage();
+
+      const store = loadStore();
+      const key = normalizeName(name);
+
+      const repo = store.repos[key];
+      const collection = store.collections[key];
+
+      if (repo || collection) {
+        const preferredIde = repo ? repo.ide : collection.ide;
+        if (preferredIde) {
+          if (collection) {
+            return openCollection(name, preferredIde);
+          }
+          return cmdOpen(name, preferredIde);
+        }
+
+        console.error(`❌ No preferred IDE set for "${name}".`);
+        console.error(`   Use: om ide ${name} <vs|ws|cs|ij|pc|ag>`);
+        process.exit(1);
+      } else {
+        console.error(`❌ "${name}" not found.`);
+        process.exit(1);
+      }
+    }
     default: {
       // Check if the command is actually a repo or collection name
       const store = loadStore();
