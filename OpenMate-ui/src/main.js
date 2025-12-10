@@ -154,17 +154,18 @@ const createWindow = () => {
         repos: Object.entries(reposData.repos || {}).map(([name, data]) => ({
           name,
           path: data.path,
+          ide: data.ide,
           updatedAt: data.updatedAt,
         })),
         collections: Object.entries(reposData.collections || {}).map(
           ([name, data]) => ({
             name,
             repos: data.repos.join(", "),
+            ide: data.ide,
             updatedAt: data.updatedAt,
           })
         ),
-        ide_default_1: reposData.ide_default_1 || "",
-        ide_default_2: reposData.ide_default_2 || "",
+        ide_default: reposData.ide_default || "",
       });
     });
   }
@@ -188,17 +189,18 @@ ipcMain.handle("delete-repo", async (event, repoName) => {
             repos: Object.entries(data.repos || {}).map(([name, repo]) => ({
               name,
               path: repo.path,
+              ide: repo.ide,
               updatedAt: repo.updatedAt,
             })),
             collections: Object.entries(data.collections || {}).map(
               ([name, collection]) => ({
                 name,
                 repos: collection.repos.join(", "),
+                ide: collection.ide,
                 updatedAt: collection.updatedAt,
               })
             ),
-            ide_default_1: data.ide_default_1 || "",
-            ide_default_2: data.ide_default_2 || "",
+            ide_default: data.ide_default || "",
           });
         });
         return { success: true };
@@ -269,7 +271,7 @@ const deleteCollection = (collectionName) => {
           updatedAt: collection.updatedAt,
         })
       ),
-      ide_default_1: updatedData.ide_default_1 || "",
+      ide_default: updatedData.ide_default || "",
       ide_default_2: updatedData.ide_default_2 || "",
     };
 
@@ -294,7 +296,7 @@ ipcMain.handle("delete-collection", async (event, collectionName) => {
 });
 
 // Handle adding a new repository
-ipcMain.handle("addRepository", async (event, { name, path }) => {
+ipcMain.handle("addRepository", async (event, { name, path, ide }) => {
   try {
     const data = readReposFile();
 
@@ -306,6 +308,7 @@ ipcMain.handle("addRepository", async (event, { name, path }) => {
     // Add the new repository
     data.repos[name] = {
       path: path,
+      ide: ide || undefined,
       updatedAt: new Date().toISOString(),
     };
 

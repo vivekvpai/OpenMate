@@ -291,6 +291,20 @@ tr:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.ide-action-btn.na-btn {
+  background-color: rgba(255, 107, 107, 0.1); /* Red background */
+  color: white;
+  border-color: #dc2626;
+  cursor: default;
+  font-weight: bold;
+}
+
+.ide-action-btn.na-btn:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+  transform: none;
+  box-shadow: none;
+}
+
 .edit-btn,
 .delete-btn {
   background: none;
@@ -629,7 +643,6 @@ button {
   flex: 1;
   border: 1px solid var(--border-dark) !important;
   border-radius: 4px;
-  margin-right: 12px;
 }
 
 .ide-selector {

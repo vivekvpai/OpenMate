@@ -19,10 +19,6 @@
             <div id="ide-icon-default-1" class="ide-icon-preview"></div>
             <select id="ide-selector-default-1" class="ide-select"></select>
           </div>
-          <div class="ide-selector">
-            <div id="ide-icon-default-2" class="ide-icon-preview"></div>
-            <select id="ide-selector-default-2" class="ide-select"></select>
-          </div>
         </div>
       </div>
       <div class="header-actions">
@@ -73,6 +69,12 @@
                   Browse
                 </button>
               </div>
+            </div>
+            <div class="form-group">
+              <label for="repo-ide">Default IDE (Optional)</label>
+              <select id="repo-ide" class="form-control" style="width: 100%">
+                <!-- Options populated by JS -->
+              </select>
             </div>
             <div class="form-actions">
               <button type="submit" class="btn primary">Save</button>
@@ -139,6 +141,17 @@
                   Browse
                 </button>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-repo-ide">Default IDE (Optional)</label>
+              <select
+                id="edit-repo-ide"
+                class="form-control"
+                style="width: 100%"
+              >
+                <!-- Options populated by JS -->
+              </select>
             </div>
 
             <div class="form-actions">

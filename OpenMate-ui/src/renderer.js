@@ -34,12 +34,10 @@ const AppState = {
     this.collections = collections;
   },
 
-  defaultIDE1: "",
-  defaultIDE2: "",
+  defaultIDE: "",
 
-  setDefaultIDEs(d1, d2) {
-    this.defaultIDE1 = d1 || "";
-    this.defaultIDE2 = d2 || "";
+  setDefaultIDEs(d1) {
+    this.defaultIDE = d1 || "";
   },
 
   getFilteredRepos(searchTerm) {
@@ -179,55 +177,36 @@ const IDEManager = {
 
   init() {
     this.selectorDefault1 = document.getElementById("ide-selector-default-1");
-    this.selectorDefault2 = document.getElementById("ide-selector-default-2");
 
     // Icon containers
     this.iconDefault1 = document.getElementById("ide-icon-default-1");
-    this.iconDefault2 = document.getElementById("ide-icon-default-2");
 
     // Populate global selector options
     const optionsHtml1 = AppState.IDE_OPTIONS.map((opt) => {
-      const label = opt.value === "" ? "Default 1" : opt.label;
-      return `<option value="${opt.value}">${label}</option>`;
-    }).join("");
-
-    const optionsHtml2 = AppState.IDE_OPTIONS.map((opt) => {
-      const label = opt.value === "" ? "Default 2" : opt.label;
+      const label = opt.value === "" ? "Default" : opt.label;
       return `<option value="${opt.value}">${label}</option>`;
     }).join("");
 
     this.selectorDefault1.innerHTML = optionsHtml1;
-    this.selectorDefault2.innerHTML = optionsHtml2;
 
     this.loadPreferences();
     this.bindEvents();
   },
 
   loadPreferences() {
-    this.selectorDefault1.value = AppState.defaultIDE1;
-    this.selectorDefault2.value = AppState.defaultIDE2;
-
+    this.selectorDefault1.value = AppState.defaultIDE;
     // Initial Icon Update
-    this.updateIcon(this.iconDefault1, AppState.defaultIDE1);
-    this.updateIcon(this.iconDefault2, AppState.defaultIDE2);
+    this.updateIcon(this.iconDefault1, AppState.defaultIDE);
   },
 
   getDefault1() {
     return this.selectorDefault1.value;
   },
 
-  getDefault2() {
-    return this.selectorDefault2.value;
-  },
-
   bindEvents() {
     this.selectorDefault1.addEventListener("change", (e) => {
       this.updateIcon(this.iconDefault1, e.target.value);
-      this.updateDefault("ide_default_1", e.target.value);
-    });
-    this.selectorDefault2.addEventListener("change", (e) => {
-      this.updateIcon(this.iconDefault2, e.target.value);
-      this.updateDefault("ide_default_2", e.target.value);
+      this.updateDefault("ide_default", e.target.value);
     });
     // No explicit bindEvents needed as CustomSelect handles its own events
   },
@@ -254,7 +233,7 @@ const IDEManager = {
       await window.electronAPI.writeReposFile(data);
 
       NotificationManager.showSuccess(
-        `Updated ${key === "ide_default_1" ? "Default 1" : "Default 2"}`
+        `Updated ${key === "ide_default" ? "Default 1" : "Default 2"}`
       );
 
       // Refresh UI to reflect changes
@@ -386,13 +365,24 @@ class RepositoryModal extends Modal {
     super("add-repo-modal", "add-repo-form", "add-repo-btn");
     this.nameInput = document.getElementById("repo-name");
     this.pathInput = document.getElementById("repo-path");
+    this.ideInput = document.getElementById("repo-ide");
     this.browseBtn = document.getElementById("browse-path");
 
+    this.populateIdeOptions();
     this.bindRepositoryEvents();
+  }
+
+  populateIdeOptions() {
+    const optionsHtml = AppState.IDE_OPTIONS.map((opt) => {
+      const label = opt.value === "" ? "Default (None)" : opt.label;
+      return `<option value="${opt.value}">${label}</option>`;
+    }).join("");
+    this.ideInput.innerHTML = optionsHtml;
   }
 
   onOpen() {
     this.nameInput.focus();
+    this.ideInput.value = ""; // Reset to default
   }
 
   bindRepositoryEvents() {
@@ -405,11 +395,12 @@ class RepositoryModal extends Modal {
 
     const name = this.nameInput.value.trim();
     const path = this.pathInput.value.trim();
+    const ide = this.ideInput.value;
 
     if (!this.validateInputs(name, path)) return;
 
     try {
-      await window.electronAPI.addRepository({ name, path });
+      await window.electronAPI.addRepository({ name, path, ide });
       this.close();
       NotificationManager.showSuccess("Repository added successfully!");
       UIManager.refresh();
@@ -450,11 +441,21 @@ class EditRepositoryModal extends Modal {
     super("edit-repo-modal", "edit-repo-form");
     this.nameInput = document.getElementById("edit-repo-name");
     this.pathInput = document.getElementById("edit-repo-path");
+    this.ideInput = document.getElementById("edit-repo-ide");
     this.originalNameInput = document.getElementById("edit-original-name");
     this.browseBtn = document.getElementById("edit-browse-path");
     this.closeBtn = document.querySelector("#edit-repo-modal .close");
 
+    this.populateIdeOptions();
     this.bindEvents();
+  }
+
+  populateIdeOptions() {
+    const optionsHtml = AppState.IDE_OPTIONS.map((opt) => {
+      const label = opt.value === "" ? "Default (None)" : opt.label;
+      return `<option value="${opt.value}">${label}</option>`;
+    }).join("");
+    this.ideInput.innerHTML = optionsHtml;
   }
 
   open(repo) {
@@ -468,6 +469,8 @@ class EditRepositoryModal extends Modal {
     // Clear and reset form fields
     this.nameInput.value = repo.name;
     this.pathInput.value = repo.path;
+    this.ideInput.value = repo.ide || "";
+
     this.nameInput.placeholder = `Current: ${repo.name}`;
     this.pathInput.placeholder = `Current: ${repo.path}`;
 
@@ -490,6 +493,7 @@ class EditRepositoryModal extends Modal {
     const path =
       this.pathInput.value.trim() ||
       this.pathInput.placeholder.replace("Current: ", ""); // Use current path if empty
+    const ide = this.ideInput.value;
 
     if (!this.validateInputs(name, path)) return;
 
@@ -528,6 +532,7 @@ class EditRepositoryModal extends Modal {
       const now = new Date().toISOString();
       updatedRepos[name] = {
         path,
+        ide: ide || undefined, // Only save if set
         updatedAt: data.repos[originalName]?.updatedAt || now,
       };
 
@@ -1091,7 +1096,7 @@ const UIManager = {
     }
 
     // Process Defaults
-    AppState.setDefaultIDEs(data.ide_default_1, data.ide_default_2);
+    AppState.setDefaultIDEs(data.ide_default);
     IDEManager.loadPreferences(); // Update select elements
   },
 
@@ -1126,7 +1131,6 @@ const UIManager = {
 
   createRepositoryRow(repo) {
     const default1 = IDEManager.getDefault1();
-    const default2 = IDEManager.getDefault2();
 
     // Helper to get logo
     const getLogo = (code) => {
@@ -1144,12 +1148,14 @@ const UIManager = {
       buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${content1}</button>`;
     }
 
-    if (default2) {
-      const logo2 = getLogo(default2);
-      const content2 = logo2
-        ? `<img src="${logo2}" alt="${default2}">`
-        : default2;
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${content2}</button>`;
+    if (repo.ide) {
+      const logoIde = getLogo(repo.ide);
+      const contentIde = logoIde
+        ? `<img src="${logoIde}" alt="${repo.ide}">`
+        : repo.ide;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${repo.ide}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${contentIde}</button>`;
+    } else {
+      buttonsHtml += `<button class="ide-action-btn na-btn" onclick="event.stopPropagation()">NA</button>`;
     }
 
     return `
@@ -1359,7 +1365,6 @@ const UIManager = {
     const collectionData = JSON.stringify(collection).replace(/"/g, "&quot;");
 
     const default1 = IDEManager.getDefault1();
-    const default2 = IDEManager.getDefault2();
 
     // Helper to get logo
     const getLogo = (code) => {
@@ -1377,12 +1382,14 @@ const UIManager = {
       buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${content1}</button>`;
     }
 
-    if (default2) {
-      const logo2 = getLogo(default2);
-      const content2 = logo2
-        ? `<img src="${logo2}" alt="${default2}">`
-        : default2;
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${content2}</button>`;
+    if (collection.ide) {
+      const logoIde = getLogo(collection.ide);
+      const contentIde = logoIde
+        ? `<img src="${logoIde}" alt="${collection.ide}">`
+        : collection.ide;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${collection.ide}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${contentIde}</button>`;
+    } else {
+      buttonsHtml += `<button class="ide-action-btn na-btn" onclick="event.stopPropagation()">NA</button>`;
     }
 
     return `
@@ -1622,15 +1629,10 @@ class App {
   bindElectronEvents() {
     if (window.electronAPI && window.electronAPI.onReposData) {
       window.electronAPI.onReposData((data) => {
-        const {
-          repos = [],
-          collections = [],
-          ide_default_1 = "",
-          ide_default_2 = "",
-        } = data;
+        const { repos = [], collections = [], ide_default = "" } = data;
         AppState.setRepos(repos);
         AppState.setCollections(collections);
-        AppState.setDefaultIDEs(ide_default_1, ide_default_2);
+        AppState.setDefaultIDEs(ide_default);
         IDEManager.loadPreferences(); // Update values in dropdowns
         UIManager.updateDisplay();
       });
