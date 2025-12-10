@@ -112,6 +112,16 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <div class="current-value">
+                <span>Default IDE :</span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-repo-ide"
+                ></span>
+              </div>
+            </div>
+
             <div class="divider"></div>
 
             <!-- New Values (Editable) -->
@@ -211,6 +221,17 @@
                 <div class="loading">Loading repositories...</div>
               </div>
             </div>
+
+            <div class="form-group">
+              <label for="collection-ide">Default IDE (Optional)</label>
+              <select
+                id="collection-ide"
+                class="form-control"
+                style="width: 100%"
+              >
+                <!-- Options populated by JS -->
+              </select>
+            </div>
           </form>
         </div>
       </div>
@@ -241,6 +262,15 @@
                 ></span>
               </div>
             </div>
+            <div class="form-group">
+              <div class="current-value">
+                <span>Default IDE :</span>
+                <span
+                  style="font-weight: bold; margin: 0px 10px"
+                  id="current-collection-ide"
+                ></span>
+              </div>
+            </div>
 
             <div class="form-group">
               <label for="edit-collection-name">New Collection Name</label>
@@ -251,6 +281,17 @@
                 style="width: 95%"
                 placeholder="Enter new collection name"
               />
+            </div>
+
+            <div class="form-group">
+              <label for="edit-collection-ide">Default IDE (Optional)</label>
+              <select
+                id="edit-collection-ide"
+                class="form-control"
+                style="width: 100%"
+              >
+                <!-- Options populated by JS -->
+              </select>
             </div>
 
             <div class="form-group">

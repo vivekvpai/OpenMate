@@ -466,6 +466,30 @@ class EditRepositoryModal extends Modal {
     document.getElementById("current-repo-name").textContent = repo.name;
     document.getElementById("current-repo-path").textContent = repo.path;
 
+    // Set current IDE display
+    const currentIdeEl = document.getElementById("current-repo-ide");
+    if (repo.ide) {
+      const ideOption = AppState.IDE_OPTIONS.find(
+        (opt) => opt.value === repo.ide
+      );
+      if (ideOption) {
+        currentIdeEl.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${
+              ideOption.logo
+                ? `<img src="${ideOption.logo}" alt="${ideOption.label}" width="16" height="16">`
+                : ""
+            }
+            <span>${ideOption.label}</span>
+          </div>`;
+      } else {
+        currentIdeEl.textContent = repo.ide;
+      }
+    } else {
+      currentIdeEl.innerHTML =
+        '<span class="ide-action-btn na-btn" style="cursor: default">NA</span>';
+    }
+
     // Clear and reset form fields
     this.nameInput.value = repo.name;
     this.pathInput.value = repo.path;
@@ -594,7 +618,10 @@ class EditCollectionModal extends Modal {
     this.currentNameEl = document.getElementById("current-collection-name");
     this.currentReposEl = document.getElementById("current-collection-repos");
     this.reposSelection = document.getElementById("edit-repos-selection");
+    this.ideInput = document.getElementById("edit-collection-ide");
     this.closeBtn = document.querySelector("#edit-collection-modal .close");
+
+    this.populateIdeOptions();
 
     this.bindEvents();
   }
@@ -605,6 +632,33 @@ class EditCollectionModal extends Modal {
 
     // Set current values
     this.currentNameEl.textContent = collection.name;
+
+    // Set current IDE display
+    const currentIdeEl = document.getElementById("current-collection-ide");
+    if (collection.ide) {
+      const ideOption = AppState.IDE_OPTIONS.find(
+        (opt) => opt.value === collection.ide
+      );
+      if (ideOption) {
+        currentIdeEl.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${
+              ideOption.logo
+                ? `<img src="${ideOption.logo}" alt="${ideOption.label}" width="16" height="16">`
+                : ""
+            }
+            <span>${ideOption.label}</span>
+          </div>`;
+      } else {
+        currentIdeEl.textContent = collection.ide;
+      }
+    } else {
+      currentIdeEl.innerHTML =
+        '<span class="ide-action-btn na-btn" style="cursor: default">NA</span>';
+    }
+
+    // Set dropdown value
+    this.ideInput.value = collection.ide || "";
 
     // Handle both array and string formats for backward compatibility
     const repoList = Array.isArray(collection.repos)
@@ -632,6 +686,16 @@ class EditCollectionModal extends Modal {
     this.form?.addEventListener("submit", (e) => this.handleSubmit(e));
 
     this.closeBtn?.addEventListener("click", () => this.close());
+  }
+
+  populateIdeOptions() {
+    this.ideInput.innerHTML = "";
+    AppState.IDE_OPTIONS.forEach((opt) => {
+      const option = document.createElement("option");
+      option.value = opt.value;
+      option.textContent = opt.label;
+      this.ideInput.appendChild(option);
+    });
   }
 
   async loadRepositories(selectedRepos = []) {
@@ -678,6 +742,7 @@ class EditCollectionModal extends Modal {
 
     const originalName = this.originalNameInput.value;
     const name = this.nameInput.value.trim();
+    const ide = this.ideInput.value;
     const selectedRepos = this.getSelectedRepositories();
 
     if (!this.validateInputs(name, selectedRepos)) return;
@@ -705,6 +770,7 @@ class EditCollectionModal extends Modal {
       updatedCollections[name] = {
         name,
         repos: selectedRepos, // Save as array
+        ide: ide || undefined,
         updatedAt:
           updatedCollections[originalName]?.updatedAt ||
           new Date().toISOString(),
@@ -756,13 +822,27 @@ class CollectionModal extends Modal {
     super("add-collection-modal", "add-collection-form", "add-collection-btn");
     this.nameInput = document.getElementById("collection-name");
     this.reposSelection = document.getElementById("repos-selection");
+    this.ideInput = document.getElementById("collection-ide");
 
     this.bindCollectionEvents();
   }
 
   async onOpen() {
     this.nameInput.focus();
+    this.nameInput.value = "";
+    this.ideInput.value = "";
+    this.populateIdeOptions();
     await this.loadRepositories();
+  }
+
+  populateIdeOptions() {
+    this.ideInput.innerHTML = "";
+    AppState.IDE_OPTIONS.forEach((opt) => {
+      const option = document.createElement("option");
+      option.value = opt.value;
+      option.textContent = opt.label;
+      this.ideInput.appendChild(option);
+    });
   }
 
   onClose() {
@@ -816,12 +896,13 @@ class CollectionModal extends Modal {
     e.preventDefault();
 
     const name = this.nameInput.value.trim();
+    const ide = this.ideInput.value;
     const selectedRepos = this.getSelectedRepositories();
 
     if (!this.validateInputs(name, selectedRepos)) return;
 
     try {
-      await this.saveCollection(name, selectedRepos);
+      await this.saveCollection(name, selectedRepos, ide);
       this.close();
       NotificationManager.showSuccess("Collection created successfully!");
       UIManager.refresh();
@@ -852,7 +933,7 @@ class CollectionModal extends Modal {
     return true;
   }
 
-  async saveCollection(name, selectedRepos) {
+  async saveCollection(name, selectedRepos, ide) {
     const data = await window.electronAPI.getReposData();
 
     if (data.collections && data.collections[name]) {
@@ -863,6 +944,7 @@ class CollectionModal extends Modal {
     data.collections[name] = {
       name,
       repos: selectedRepos,
+      ide: ide || undefined,
       updatedAt: new Date().toISOString(),
     };
 
@@ -976,7 +1058,9 @@ const UIManager = {
 
       if (type === "repo") {
         if (this.handleEditRepository) {
-          this.handleEditRepository({ name, path });
+          // Look up full repo details from AppState to get 'ide' and other props
+          const repoData = AppState.repos.find((r) => r.name === name);
+          this.handleEditRepository(repoData || { name, path });
         }
       } else if (type === "collection") {
         try {
@@ -1051,6 +1135,7 @@ const UIManager = {
   },
 
   processData(data) {
+    console.log("Processing Data from Main:", data); // DEBUG
     // Clear existing item preferences to ensure we match source of truth
     IDEManager.itemPreferences.clear();
 
@@ -1067,6 +1152,7 @@ const UIManager = {
           updatedAt: repo.updatedAt || new Date().toISOString(),
         };
       });
+      console.log("Updated AppState.repos:", repos); // DEBUG
       AppState.setRepos(repos);
     } else {
       AppState.setRepos([]);
