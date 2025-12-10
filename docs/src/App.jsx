@@ -8,6 +8,7 @@ import ws from "./assets/public/WS.svg";
 import pycharm from "./assets/public/PyCharm_Icon.svg";
 import cube from "./assets/public/CUBE_2D_DARK.svg";
 import idea from "./assets/public/IntelliJ_IDEA_Icon.svg";
+import antigravity from "./assets/public/antigravity.svg";
 
 // Toast component
 function Toast({ message, show }) {
@@ -37,7 +38,6 @@ function App() {
 
   return (
     <>
-    
       {/* Toast globally visible */}
       <Toast message="Copied to Clipboard!" show={copied} />
 
@@ -51,7 +51,10 @@ function App() {
                   <img src={logo} alt="" className="h-10 w-auto ml-6 mt-2" />
                   <div className="flex font-inter text-lg px-8">
                     <nav className="flex my-auto">
-                      <Link to="/docs" className="font-medium hover:text-red-600">
+                      <Link
+                        to="/docs"
+                        className="font-medium hover:text-red-600"
+                      >
                         DOCS
                       </Link>
                     </nav>
@@ -61,22 +64,40 @@ function App() {
                 <main className="pt-20">
                   <section className="relative grid place-items-start min-h-screen px-6 py-[120px]">
                     <h1>
-                      <span className="font-robotoslab text-9xl font-medium">OpenMate:</span>
+                      <span className="font-robotoslab text-9xl font-medium">
+                        OpenMate:
+                      </span>
                       <div className="mt-6 text-2xl font-inter font-light ml-3">
-                        One-key access to any local project in your favorite editor.
+                        One-key access to any local project in your favorite
+                        editor.
                       </div>
-                      <div className="mt-6">
+                      <div className="mt-12 w-fit">
                         <button
                           onClick={() => handleCopy("npm install -g openmate")}
-                          className="text-gray-500 hover:text-gray-400 transition flex items-center gap-1 px-4 pt-4 font-mono cursor-copy"
+                          className="group relative overflow-hidden rounded-lg bg-gray-900 ring-1 ring-white/10 text-left shadow-2xl transition-all hover:ring-white/20 hover:bg-gray-800 cursor-copy"
                         >
-                          ~npm install -g openmate
+                          <div className="flex items-center gap-2 border-b border-white/5 bg-white/5 px-4 py-3">
+                            <div className="flex gap-1.5">
+                              <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
+                              <div className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+                              <div className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
+                            </div>
+                            <div className="ml-2 text-xs text-gray-400 font-sans font-medium">
+                              bash
+                            </div>
+                          </div>
+                          <div className="px-6 py-4 font-mono text-base text-gray-300 flex items-center gap-3">
+                            <span className="text-pink-500 select-none">➜</span>
+                            <span className="group-hover:text-white transition-colors">
+                              npm install -g openmate
+                            </span>
+                          </div>
                         </button>
                       </div>
                     </h1>
                   </section>
                 </main>
-                 {/* Section 2 */}
+                {/* Section 2 */}
                 <section id="part-2" className="px-6">
                   <h1 className="font-inter text-7xl pb-8 ">
                     What does OpenMate do<span className="text-red-600">?</span>
@@ -91,7 +112,8 @@ function App() {
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
                           Save project folders under short names and open them
-                          instantly in your preferred IDE with simple CLI commands
+                          instantly in your preferred IDE with simple CLI
+                          commands
                           <span className="text-red-600 font-bold">.</span>
                         </p>
                       </div>
@@ -106,8 +128,8 @@ function App() {
                       </div>
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
-                          Group related repositories into collections so entire stacks
-                          can be launched together with one command
+                          Group related repositories into collections so entire
+                          stacks can be launched together with one command
                           <span className="text-red-600 font-bold">.</span>
                         </p>
                       </div>
@@ -122,8 +144,9 @@ function App() {
                       </div>
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
-                          Manage everything fast from the terminal: add, update, remove,
-                          list, print paths, and get smart suggestions for partial names
+                          Manage everything fast from the terminal: add, update,
+                          remove, list, print paths, and get smart suggestions
+                          for partial names
                           <span className="text-red-600 font-bold">.</span>
                         </p>
                       </div>
@@ -138,9 +161,9 @@ function App() {
                       </div>
                       <div className="w-2/3 flex font-inter text-[32px]">
                         <p className="leading-relaxed font-light">
-                          Use the Windows desktop UI for the same workflow with search,
-                          default-editor selection, dark/light modes, and easy repo or
-                          collection editing
+                          Use the Windows desktop UI for the same workflow with
+                          search, default-editor selection, dark/light modes,
+                          and easy repo or collection editing
                           <span className="text-red-600 font-bold">.</span>
                         </p>
                       </div>
@@ -154,7 +177,7 @@ function App() {
                     Editor's supported<span className="text-red-600">:</span>
                   </h1>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center pt-30">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center pt-30">
                     <div className="flex flex-col items-center">
                       <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
                         <img
@@ -171,26 +194,14 @@ function App() {
                     <div className="flex flex-col items-center">
                       <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
                         <img
-                          src={ws}
-                          alt="WindSurf"
+                          src={antigravity}
+                          alt="Antigravity"
                           className="w-2/3 h-2/3 object-contain"
                         />
                       </div>
                       <p className="font-inter text-2xl mt-3">
-                        WindSurf<span className="text-red-600 font-bold">.</span>
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
-                        <img
-                          src={pycharm}
-                          alt="PyCharm"
-                          className="w-2/3 h-2/3 object-contain"
-                        />
-                      </div>
-                      <p className="font-inter text-2xl mt-3">
-                        PyCharm<span className="text-red-600 font-bold">.</span>
+                        Antigravity
+                        <span className="text-red-600 font-bold">.</span>
                       </p>
                     </div>
 
@@ -210,13 +221,41 @@ function App() {
                     <div className="flex flex-col items-center">
                       <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
                         <img
+                          src={ws}
+                          alt="WindSurf"
+                          className="w-2/3 h-2/3 object-contain"
+                        />
+                      </div>
+                      <p className="font-inter text-2xl mt-3">
+                        WindSurf
+                        <span className="text-red-600 font-bold">.</span>
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
+                        <img
+                          src={pycharm}
+                          alt="PyCharm"
+                          className="w-2/3 h-2/3 object-contain"
+                        />
+                      </div>
+                      <p className="font-inter text-2xl mt-3">
+                        PyCharm<span className="text-red-600 font-bold">.</span>
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <div className="w-20 sm:w-24 md:w-28 lg:w-32 aspect-square rounded-3xl shadow-lg flex items-center justify-center p-2">
+                        <img
                           src={idea}
                           alt="IntelliJ IDEA"
                           className="w-2/3 h-2/3 object-contain"
                         />
                       </div>
                       <p className="font-inter text-2xl mt-3">
-                        IntelliJ IDEA<span className="text-red-600 font-bold">.</span>
+                        IntelliJ IDEA
+                        <span className="text-red-600 font-bold">.</span>
                       </p>
                     </div>
                   </div>
