@@ -1,4 +1,14 @@
 // =======================
+// Asset Imports
+// =======================
+import agLogo from "../assets/ag.svg";
+import csLogo from "../assets/cs.svg";
+import wsLogo from "../assets/ws.svg";
+import vsLogo from "../assets/vs.svg";
+import ijLogo from "../assets/ij.svg";
+import pcLogo from "../assets/py.svg";
+
+// =======================
 // State Management
 // =======================
 const AppState = {
@@ -7,13 +17,13 @@ const AppState = {
 
   // Available IDE Options
   IDE_OPTIONS: [
-    { value: "", label: "Default" },
-    { value: "ag", label: "Antigravity" },
-    { value: "cs", label: "Cursor" },
-    { value: "ws", label: "Windsurf" },
-    { value: "vs", label: "VS Code" },
-    { value: "ij", label: "IntelliJ" },
-    { value: "pc", label: "PyCharm" },
+    { value: "", label: "Select IDE", logo: "" },
+    { value: "ag", label: "Antigravity", logo: agLogo },
+    { value: "cs", label: "Cursor", logo: csLogo },
+    { value: "ws", label: "Windsurf", logo: wsLogo },
+    { value: "vs", label: "VS Code", logo: vsLogo },
+    { value: "ij", label: "IntelliJ", logo: ijLogo },
+    { value: "pc", label: "PyCharm", logo: pcLogo },
   ],
 
   setRepos(repos) {
@@ -171,14 +181,18 @@ const IDEManager = {
     this.selectorDefault1 = document.getElementById("ide-selector-default-1");
     this.selectorDefault2 = document.getElementById("ide-selector-default-2");
 
+    // Icon containers
+    this.iconDefault1 = document.getElementById("ide-icon-default-1");
+    this.iconDefault2 = document.getElementById("ide-icon-default-2");
+
     // Populate global selector options
     const optionsHtml1 = AppState.IDE_OPTIONS.map((opt) => {
-      const label = opt.value === "" ? "Default 1 (Primary)" : opt.label;
+      const label = opt.value === "" ? "Default 1" : opt.label;
       return `<option value="${opt.value}">${label}</option>`;
     }).join("");
 
     const optionsHtml2 = AppState.IDE_OPTIONS.map((opt) => {
-      const label = opt.value === "" ? "Default 2 (Secondary)" : opt.label;
+      const label = opt.value === "" ? "Default 2" : opt.label;
       return `<option value="${opt.value}">${label}</option>`;
     }).join("");
 
@@ -192,6 +206,10 @@ const IDEManager = {
   loadPreferences() {
     this.selectorDefault1.value = AppState.defaultIDE1;
     this.selectorDefault2.value = AppState.defaultIDE2;
+
+    // Initial Icon Update
+    this.updateIcon(this.iconDefault1, AppState.defaultIDE1);
+    this.updateIcon(this.iconDefault2, AppState.defaultIDE2);
   },
 
   getDefault1() {
@@ -203,12 +221,25 @@ const IDEManager = {
   },
 
   bindEvents() {
-    this.selectorDefault1.addEventListener("change", (e) =>
-      this.updateDefault("ide_default_1", e.target.value)
-    );
-    this.selectorDefault2.addEventListener("change", (e) =>
-      this.updateDefault("ide_default_2", e.target.value)
-    );
+    this.selectorDefault1.addEventListener("change", (e) => {
+      this.updateIcon(this.iconDefault1, e.target.value);
+      this.updateDefault("ide_default_1", e.target.value);
+    });
+    this.selectorDefault2.addEventListener("change", (e) => {
+      this.updateIcon(this.iconDefault2, e.target.value);
+      this.updateDefault("ide_default_2", e.target.value);
+    });
+    // No explicit bindEvents needed as CustomSelect handles its own events
+  },
+
+  updateIcon(container, value) {
+    if (!container) return;
+    const opt = AppState.IDE_OPTIONS.find((o) => o.value === value);
+    if (opt && opt.logo) {
+      container.innerHTML = `<img src="${opt.logo}" alt="${opt.label}">`;
+    } else {
+      container.innerHTML = "";
+    }
   },
 
   async updateDefault(key, value) {
@@ -877,8 +908,18 @@ const UIManager = {
           className: "popover-item",
           "data-ide": opt.value,
         },
-        [opt.label]
+        []
       );
+
+      // Add logo if available
+      if (opt.logo) {
+        const img = document.createElement("img");
+        img.src = opt.logo;
+        img.alt = opt.label;
+        btn.appendChild(img);
+      }
+
+      btn.appendChild(document.createTextNode(opt.label));
 
       btn.addEventListener("click", (e) =>
         this.handlePopoverIDEClick(e, opt.value)
@@ -1069,14 +1110,28 @@ const UIManager = {
     const default1 = IDEManager.getDefault1();
     const default2 = IDEManager.getDefault2();
 
+    // Helper to get logo
+    const getLogo = (code) => {
+      const opt = AppState.IDE_OPTIONS.find((o) => o.value === code);
+      return opt ? opt.logo : null;
+    };
+
     let buttonsHtml = "";
 
     if (default1) {
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${default1}</button>`;
+      const logo1 = getLogo(default1);
+      const content1 = logo1
+        ? `<img src="${logo1}" alt="${default1}">`
+        : default1;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${content1}</button>`;
     }
 
     if (default2) {
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${default2}</button>`;
+      const logo2 = getLogo(default2);
+      const content2 = logo2
+        ? `<img src="${logo2}" alt="${default2}">`
+        : default2;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${content2}</button>`;
     }
 
     return `
@@ -1266,14 +1321,28 @@ const UIManager = {
     const default1 = IDEManager.getDefault1();
     const default2 = IDEManager.getDefault2();
 
+    // Helper to get logo
+    const getLogo = (code) => {
+      const opt = AppState.IDE_OPTIONS.find((o) => o.value === code);
+      return opt ? opt.logo : null;
+    };
+
     let buttonsHtml = "";
 
     if (default1) {
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${default1}</button>`;
+      const logo1 = getLogo(default1);
+      const content1 = logo1
+        ? `<img src="${logo1}" alt="${default1}">`
+        : default1;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${content1}</button>`;
     }
 
     if (default2) {
-      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${default2}</button>`;
+      const logo2 = getLogo(default2);
+      const content2 = logo2
+        ? `<img src="${logo2}" alt="${default2}">`
+        : default2;
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${content2}</button>`;
     }
 
     return `

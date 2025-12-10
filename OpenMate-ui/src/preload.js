@@ -17,8 +17,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openInIDE: (data) => ipcRenderer.invoke("open-in-ide", data),
   getReposData: () => ipcRenderer.invoke("getReposData"),
   deleteRepo: (repoName) => ipcRenderer.invoke("delete-repo", repoName),
-  deleteCollection: (collectionName) => ipcRenderer.invoke("delete-collection", collectionName),
+  deleteCollection: (collectionName) =>
+    ipcRenderer.invoke("delete-collection", collectionName),
   addRepository: (repoData) => ipcRenderer.invoke("addRepository", repoData),
   openDirectoryDialog: () => ipcRenderer.invoke("openDirectoryDialog"),
-  writeReposFile: (data) => ipcRenderer.invoke("writeReposFile", data)
+  writeReposFile: (data) => ipcRenderer.invoke("writeReposFile", data),
 });
