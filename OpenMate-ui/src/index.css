@@ -267,8 +267,31 @@ tr:hover {
 
 /* Actions column */
 .actions {
-  width: 50px;
-  text-align: center;
+  width: 140px; /* Increased width for two buttons + menu */
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ide-action-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 0.85em;
+  font-weight: 500;
+  margin-right: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.ide-action-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .edit-btn,
@@ -750,4 +773,19 @@ button {
 
 .popover-item.delete-btn:hover {
   background-color: rgba(255, 107, 107, 0.1);
+}
+
+.popover-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 4px 0;
+}
+
+.popover-label {
+  padding: 4px 12px;
+  font-size: 0.75em;
+  color: var(--text-color);
+  opacity: 0.7;
+  text-transform: uppercase;
+  font-weight: bold;
 }

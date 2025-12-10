@@ -24,6 +24,14 @@ const AppState = {
     this.collections = collections;
   },
 
+  defaultIDE1: "",
+  defaultIDE2: "",
+
+  setDefaultIDEs(d1, d2) {
+    this.defaultIDE1 = d1 || "";
+    this.defaultIDE2 = d2 || "";
+  },
+
   getFilteredRepos(searchTerm) {
     return this.filterItems(this.repos, searchTerm);
   },
@@ -89,7 +97,9 @@ const Utils = {
 // =======================
 const Storage = {
   THEME_KEY: "openmate-theme",
-  IDE_KEY: "openmate-ide-selector",
+  THEME_KEY: "openmate-theme",
+  IDE_KEY_1: "openmate-ide-default-1",
+  IDE_KEY_2: "openmate-ide-default-2",
 
   get(key) {
     try {
@@ -158,75 +168,70 @@ const IDEManager = {
   itemPreferences: new Map(),
 
   init() {
-    this.selector = document.getElementById("ide-selector");
+    this.selectorDefault1 = document.getElementById("ide-selector-default-1");
+    this.selectorDefault2 = document.getElementById("ide-selector-default-2");
 
     // Populate global selector options
-    const optionsHtml = AppState.IDE_OPTIONS.map((opt) => {
-      // For global selector, use "Select Default IDE" or similar for the empty option
-      const label = opt.value === "" ? "Select Default IDE" : opt.label;
-      const disabled = opt.value === "" ? "disabled" : "";
-      return `<option value="${opt.value}" ${disabled}>${label}</option>`;
+    const optionsHtml1 = AppState.IDE_OPTIONS.map((opt) => {
+      const label = opt.value === "" ? "Default 1 (Primary)" : opt.label;
+      return `<option value="${opt.value}">${label}</option>`;
     }).join("");
-    this.selector.innerHTML = optionsHtml;
 
-    this.loadPreference();
+    const optionsHtml2 = AppState.IDE_OPTIONS.map((opt) => {
+      const label = opt.value === "" ? "Default 2 (Secondary)" : opt.label;
+      return `<option value="${opt.value}">${label}</option>`;
+    }).join("");
+
+    this.selectorDefault1.innerHTML = optionsHtml1;
+    this.selectorDefault2.innerHTML = optionsHtml2;
+
+    this.loadPreferences();
     this.bindEvents();
   },
 
-  loadPreference() {
-    const savedIDE = Storage.get(Storage.IDE_KEY);
-    if (savedIDE) {
-      this.selector.value = savedIDE;
-    }
+  loadPreferences() {
+    this.selectorDefault1.value = AppState.defaultIDE1;
+    this.selectorDefault2.value = AppState.defaultIDE2;
   },
 
-  getSelectedIDE() {
-    return this.selector.value;
+  getDefault1() {
+    return this.selectorDefault1.value;
   },
 
-  async setItemIDE(type, name, ide) {
-    if (!ide) {
-      this.itemPreferences.delete(`${type}:${name}`);
-    } else {
-      this.itemPreferences.set(`${type}:${name}`, ide);
-    }
-
-    try {
-      const data = await window.electronAPI.getReposData();
-      const section = type === "repo" ? "repos" : "collections";
-
-      if (data[section] && data[section][name]) {
-        if (ide) {
-          data[section][name].ide = ide;
-        } else {
-          delete data[section][name].ide;
-        }
-
-        await window.electronAPI.writeReposFile(data);
-        NotificationManager.showSuccess(`Default IDE saved for ${name}`);
-      }
-    } catch (error) {
-      console.error("Error saving IDE preference:", error);
-      NotificationManager.showError("Failed to save IDE preference");
-    }
-  },
-
-  getItemIDE(type, name) {
-    return this.itemPreferences.get(`${type}:${name}`) || this.getSelectedIDE();
-  },
-
-  getRawItemIDE(type, name) {
-    return this.itemPreferences.get(`${type}:${name}`) || "";
+  getDefault2() {
+    return this.selectorDefault2.value;
   },
 
   bindEvents() {
-    this.selector.addEventListener("change", (e) => {
-      const selectedIDE = e.target.value;
-      if (selectedIDE) {
-        Storage.set(Storage.IDE_KEY, selectedIDE);
-        NotificationManager.showSuccess(`Default IDE set to ${selectedIDE}`);
-      }
-    });
+    this.selectorDefault1.addEventListener("change", (e) =>
+      this.updateDefault("ide_default_1", e.target.value)
+    );
+    this.selectorDefault2.addEventListener("change", (e) =>
+      this.updateDefault("ide_default_2", e.target.value)
+    );
+  },
+
+  async updateDefault(key, value) {
+    try {
+      // Get current data
+      const data = await window.electronAPI.getReposData();
+
+      // Update key
+      data[key] = value;
+
+      // Save
+      await window.electronAPI.writeReposFile(data);
+
+      NotificationManager.showSuccess(
+        `Updated ${key === "ide_default_1" ? "Default 1" : "Default 2"}`
+      );
+
+      // Refresh UI to reflect changes
+      UIManager.refresh();
+    } catch (error) {
+      console.error("Error saving default IDE:", error);
+      NotificationManager.showError("Failed to save default IDE");
+    }
   },
 };
 
@@ -851,9 +856,57 @@ const UIManager = {
     this.popoverEditBtn = document.getElementById("global-edit-btn");
     this.popoverDeleteBtn = document.getElementById("global-delete-btn");
 
+    this.renderPopoverIDEOptions();
     this.bindEvents();
     this.bindPopoverEvents();
     this.refresh();
+  },
+
+  renderPopoverIDEOptions() {
+    const listContainer = document.getElementById("popover-ide-list");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<div class="popover-label">Open in...</div>';
+
+    AppState.IDE_OPTIONS.forEach((opt) => {
+      if (opt.value === "") return; // Skip "Default"
+
+      const btn = Utils.createElement(
+        "button",
+        {
+          className: "popover-item",
+          "data-ide": opt.value,
+        },
+        [opt.label]
+      );
+
+      btn.addEventListener("click", (e) =>
+        this.handlePopoverIDEClick(e, opt.value)
+      );
+
+      listContainer.appendChild(btn);
+    });
+  },
+
+  handlePopoverIDEClick(e, ide) {
+    e.stopPropagation();
+    this.globalPopover.classList.remove("show");
+
+    const type = this.globalPopover.dataset.type;
+    const name = this.globalPopover.dataset.name;
+    const path = this.globalPopover.dataset.path;
+
+    if (type === "repo") {
+      this.openInIDE(name, path, ide);
+    } else if (type === "collection") {
+      try {
+        const collectionData = this.globalPopover.dataset.collectionData;
+        const collection = JSON.parse(collectionData);
+        this.openCollectionInIDE(collection, ide);
+      } catch (err) {
+        NotificationManager.showError("Failed to parse collection data");
+      }
+    }
   },
 
   bindPopoverEvents() {
@@ -977,6 +1030,10 @@ const UIManager = {
     } else {
       AppState.setCollections([]);
     }
+
+    // Process Defaults
+    AppState.setDefaultIDEs(data.ide_default_1, data.ide_default_2);
+    IDEManager.loadPreferences(); // Update select elements
   },
 
   updateDisplay() {
@@ -1009,13 +1066,18 @@ const UIManager = {
   },
 
   createRepositoryRow(repo) {
-    const currentIDE = IDEManager.getRawItemIDE("repo", repo.name);
-    const optionsHtml = AppState.IDE_OPTIONS.map(
-      (opt) =>
-        `<option value="${opt.value}" ${
-          opt.value === currentIDE ? "selected" : ""
-        }>${opt.label}</option>`
-    ).join("");
+    const default1 = IDEManager.getDefault1();
+    const default2 = IDEManager.getDefault2();
+
+    let buttonsHtml = "";
+
+    if (default1) {
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${default1}</button>`;
+    }
+
+    if (default2) {
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">${default2}</button>`;
+    }
 
     return `
       <tr data-path="${Utils.formatPath(repo.path)}" data-name="${
@@ -1025,12 +1087,7 @@ const UIManager = {
         <td class="path">${Utils.formatPath(repo.path)}</td>
         <td class="actions">
           <div style="display: flex; gap: 5px; align-items: center;">
-            <select class="row-ide-select" data-type="repo" data-name="${
-              repo.name
-            }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
-              ${optionsHtml}
-            </select>
-            
+            ${buttonsHtml}
             <div class="action-menu-container">
               <button class="more-btn" title="More options" data-type="repo" data-name="${repo.name}" data-path="${Utils.formatPath(repo.path)}" onclick="event.stopPropagation()">⋮</button>
             </div>
@@ -1046,19 +1103,18 @@ const UIManager = {
       row.addEventListener("click", (e) => this.handleRepositoryClick(e, row));
     });
 
-    // Bind per-row IDE selector events
+    // Bind IDE Action Buttons
     document
-      .querySelectorAll('.row-ide-select[data-type="repo"]')
-      .forEach((select) => {
-        select.addEventListener("change", (e) => {
+      .querySelectorAll('.ide-action-btn[data-type="repo"]')
+      .forEach((btn) => {
+        btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const name = e.target.dataset.name;
-          const ide = e.target.value;
-          IDEManager.setItemIDE("repo", name, ide);
-        });
+          const path = e.target.dataset.path;
+          const ide = e.target.dataset.ide;
 
-        // Prevent click propagation
-        select.addEventListener("click", (e) => e.stopPropagation());
+          this.openInIDE(name, path, ide);
+        });
       });
 
     // Bind More Button toggle
@@ -1111,10 +1167,10 @@ const UIManager = {
 
     const repoName = row.getAttribute("data-name");
     const repoPath = row.getAttribute("data-path");
-    const selectedIDE = IDEManager.getItemIDE("repo", repoName);
+    const default1 = IDEManager.getDefault1();
 
-    if (!selectedIDE) {
-      NotificationManager.showError("Please select an IDE first");
+    if (!default1) {
+      NotificationManager.showError("Please select Default 1 to open row");
       return;
     }
 
@@ -1124,7 +1180,7 @@ const UIManager = {
       const result = await window.electronAPI.openInIDE({
         name: repoName,
         path: repoPath,
-        ide: selectedIDE,
+        ide: default1,
       });
 
       if (!result.success) {
@@ -1132,8 +1188,27 @@ const UIManager = {
       }
 
       NotificationManager.showSuccess(
-        `Successfully opened ${repoPath} in ${selectedIDE}`
+        `Successfully opened ${repoPath} in ${default1}`
       );
+    } catch (error) {
+      NotificationManager.showError(`Error opening IDE: ${error.message}`);
+    }
+  },
+
+  // Open Helper
+  async openInIDE(name, path, ide) {
+    try {
+      const result = await window.electronAPI.openInIDE({
+        name,
+        path,
+        ide,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to open in IDE");
+      }
+
+      NotificationManager.showSuccess(`Successfully opened ${name} in ${ide}`);
     } catch (error) {
       NotificationManager.showError(`Error opening IDE: ${error.message}`);
     }
@@ -1187,13 +1262,19 @@ const UIManager = {
 
   createCollectionRow(collection) {
     const collectionData = JSON.stringify(collection).replace(/"/g, "&quot;");
-    const currentIDE = IDEManager.getRawItemIDE("collection", collection.name);
-    const optionsHtml = AppState.IDE_OPTIONS.map(
-      (opt) =>
-        `<option value="${opt.value}" ${
-          opt.value === currentIDE ? "selected" : ""
-        }>${opt.label}</option>`
-    ).join("");
+
+    const default1 = IDEManager.getDefault1();
+    const default2 = IDEManager.getDefault2();
+
+    let buttonsHtml = "";
+
+    if (default1) {
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default1}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${default1}</button>`;
+    }
+
+    if (default2) {
+      buttonsHtml += `<button class="ide-action-btn" data-ide="${default2}" data-type="collection" data-name="${collection.name}" data-collection='${collectionData}' onclick="event.stopPropagation()">${default2}</button>`;
+    }
 
     return `
       <tr class="clickable-collection-row" data-collection="${collectionData}">
@@ -1201,12 +1282,7 @@ const UIManager = {
         <td>${collection.repos}</td>
         <td class="actions">
           <div style="display: flex; gap: 5px; align-items: center;">
-            <select class="row-ide-select" data-type="collection" data-name="${
-              collection.name
-            }" style="padding: 2px; margin-right: 5px; border-radius: 4px; border: 1px solid var(--border-dark); background: var(--card-bg); color: var(--text-color);" onclick="event.stopPropagation()">
-              ${optionsHtml}
-            </select>
-            
+            ${buttonsHtml}
             <div class="action-menu-container">
               <button class="more-btn" title="More options" data-type="collection" data-collection='${collectionData}' data-name="${collection.name}" onclick="event.stopPropagation()">⋮</button>
             </div>
@@ -1222,19 +1298,18 @@ const UIManager = {
       row.addEventListener("click", (e) => this.handleCollectionClick(e, row));
     });
 
-    // Bind per-row IDE selector events
+    // Bind IDE Action Buttons for Collections
     document
-      .querySelectorAll('.row-ide-select[data-type="collection"]')
-      .forEach((select) => {
-        select.addEventListener("change", (e) => {
+      .querySelectorAll('.ide-action-btn[data-type="collection"]')
+      .forEach((btn) => {
+        btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const name = e.target.dataset.name;
-          const ide = e.target.value;
-          IDEManager.setItemIDE("collection", name, ide);
-        });
+          const ide = e.target.dataset.ide;
+          const collection = JSON.parse(btn.getAttribute("data-collection")); // We need collection data to know repos
 
-        // Prevent click propagation
-        select.addEventListener("click", (e) => e.stopPropagation());
+          this.openCollectionInIDE(collection, ide);
+        });
       });
 
     // Bind More Button toggle for collections
@@ -1268,12 +1343,28 @@ const UIManager = {
 
     try {
       const collection = JSON.parse(row.getAttribute("data-collection"));
+      const default1 = IDEManager.getDefault1();
+
+      if (!default1) {
+        NotificationManager.showError(
+          "Please select Default 1 to open collection"
+        );
+        return;
+      }
+
+      this.openCollectionInIDE(collection, default1);
+    } catch (error) {
+      NotificationManager.showError(
+        `Error processing collection: ${error.message}`
+      );
+    }
+  },
+
+  async openCollectionInIDE(collection, ideToUse) {
+    try {
       const reposData = await window.electronAPI.getReposData();
 
-      const collectionIDE = IDEManager.getItemIDE(
-        "collection",
-        collection.name
-      );
+      // const collectionIDE = IDEManager.getItemIDE("collection", collection.name); // Legacy check ignored for now, forcing ideToUse
 
       const repos = collection.repos.split(",").map((repo) => {
         const [name, path, ide] = repo
@@ -1294,7 +1385,7 @@ const UIManager = {
           return;
         }
 
-        const ide = repo.ide || collectionIDE;
+        const ide = repo.ide || ideToUse;
 
         try {
           await window.electronAPI.openInIDE({
@@ -1310,10 +1401,12 @@ const UIManager = {
       });
 
       await Promise.allSettled(promises);
-      NotificationManager.showSuccess(`Successfully opened ${collection.name}`);
+      NotificationManager.showSuccess(
+        `Successfully opened ${collection.name} in ${ideToUse}`
+      );
     } catch (error) {
       NotificationManager.showError(
-        `Error processing collection: ${error.message}`
+        `Error opening collection: ${error.message}`
       );
     }
   },
@@ -1415,9 +1508,16 @@ class App {
   bindElectronEvents() {
     if (window.electronAPI && window.electronAPI.onReposData) {
       window.electronAPI.onReposData((data) => {
-        const { repos = [], collections = [] } = data;
+        const {
+          repos = [],
+          collections = [],
+          ide_default_1 = "",
+          ide_default_2 = "",
+        } = data;
         AppState.setRepos(repos);
         AppState.setCollections(collections);
+        AppState.setDefaultIDEs(ide_default_1, ide_default_2);
+        IDEManager.loadPreferences(); // Update values in dropdowns
         UIManager.updateDisplay();
       });
     }

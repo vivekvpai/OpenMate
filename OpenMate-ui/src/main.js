@@ -163,6 +163,8 @@ const createWindow = () => {
             updatedAt: data.updatedAt,
           })
         ),
+        ide_default_1: reposData.ide_default_1 || "",
+        ide_default_2: reposData.ide_default_2 || "",
       });
     });
   }
@@ -195,6 +197,8 @@ ipcMain.handle("delete-repo", async (event, repoName) => {
                 updatedAt: collection.updatedAt,
               })
             ),
+            ide_default_1: data.ide_default_1 || "",
+            ide_default_2: data.ide_default_2 || "",
           });
         });
         return { success: true };
@@ -265,6 +269,8 @@ const deleteCollection = (collectionName) => {
           updatedAt: collection.updatedAt,
         })
       ),
+      ide_default_1: updatedData.ide_default_1 || "",
+      ide_default_2: updatedData.ide_default_2 || "",
     };
 
     // Notify all windows

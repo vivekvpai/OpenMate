@@ -16,7 +16,10 @@
             class="search-input"
           />
           <div class="ide-selector">
-            <select id="ide-selector" class="ide-select"></select>
+            <select id="ide-selector-default-1" class="ide-select"></select>
+          </div>
+          <div class="ide-selector">
+            <select id="ide-selector-default-2" class="ide-select"></select>
           </div>
         </div>
       </div>
@@ -282,6 +285,10 @@
       <button id="global-delete-btn" class="popover-item delete-btn">
         🗑️ Delete
       </button>
+      <div class="popover-divider"></div>
+      <div id="popover-ide-list">
+        <!-- IDE options will be injected here -->
+      </div>
     </div>
 
     <script src="./renderer.js"></script>
