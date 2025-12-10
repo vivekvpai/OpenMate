@@ -933,6 +933,10 @@ const UIManager = {
     e.stopPropagation();
     this.globalPopover.classList.remove("show");
 
+    // Re-enable table scroll
+    const wrapper = document.querySelector(".table-wrapper");
+    if (wrapper) wrapper.style.overflowY = "auto";
+
     const type = this.globalPopover.dataset.type;
     const name = this.globalPopover.dataset.name;
     const path = this.globalPopover.dataset.path;
@@ -955,6 +959,10 @@ const UIManager = {
     this.popoverEditBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.globalPopover.classList.remove("show");
+
+      // Re-enable table scroll
+      const wrapper = document.querySelector(".table-wrapper");
+      if (wrapper) wrapper.style.overflowY = "auto";
 
       const type = this.globalPopover.dataset.type;
       const name = this.globalPopover.dataset.name;
@@ -982,6 +990,10 @@ const UIManager = {
       e.stopPropagation();
       this.globalPopover.classList.remove("show");
 
+      // Re-enable table scroll
+      const wrapper = document.querySelector(".table-wrapper");
+      if (wrapper) wrapper.style.overflowY = "auto";
+
       const type = this.globalPopover.dataset.type;
       const name = this.globalPopover.dataset.name;
       const btnMock = { getAttribute: (k) => name }; // Mock button interface expected by handlers
@@ -1006,8 +1018,14 @@ const UIManager = {
         !e.target.closest(".action-menu-container") &&
         !e.target.closest(".action-popover")
       ) {
-        if (this.globalPopover) {
+        if (
+          this.globalPopover &&
+          this.globalPopover.classList.contains("show")
+        ) {
           this.globalPopover.classList.remove("show");
+          // Re-enable table scroll
+          const wrapper = document.querySelector(".table-wrapper");
+          if (wrapper) wrapper.style.overflowY = "auto";
         }
       }
     });
@@ -1137,9 +1155,9 @@ const UIManager = {
     return `
       <tr data-path="${Utils.formatPath(repo.path)}" data-name="${
         repo.name
-      }" class="clickable-repo-row">
-        <td><strong>${repo.name}</strong></td>
-        <td class="path">${Utils.formatPath(repo.path)}</td>
+      }" class="repo-row">
+        <td class="clickable-cell"><strong>${repo.name}</strong></td>
+        <td class="clickable-cell path">${Utils.formatPath(repo.path)}</td>
         <td class="actions">
           <div style="display: flex; gap: 5px; align-items: center;">
             ${buttonsHtml}
@@ -1153,9 +1171,12 @@ const UIManager = {
   },
 
   bindRepositoryEvents() {
-    // Bind click events for opening repositories
-    document.querySelectorAll(".clickable-repo-row").forEach((row) => {
-      row.addEventListener("click", (e) => this.handleRepositoryClick(e, row));
+    // Bind click events for opening repositories (only on specific cells)
+    document.querySelectorAll(".repo-row .clickable-cell").forEach((cell) => {
+      cell.addEventListener("click", (e) => {
+        const row = cell.closest("tr");
+        this.handleRepositoryClick(e, row);
+      });
     });
 
     // Bind IDE Action Buttons
@@ -1200,16 +1221,35 @@ const UIManager = {
     const rect = targetBtn.getBoundingClientRect();
     const popoverWidth = 140;
 
+    // First ensure it's visible to get dimensions (important for height check)
+    this.globalPopover.style.display = "block";
+    const popoverHeight = this.globalPopover.offsetHeight || 200; // Fallback if 0
+
     // Default to bottom-left relative to button
     let top = rect.bottom;
     let left = rect.left - popoverWidth + rect.width;
 
-    // Boundary checks
+    // Check vertical overflow
+    const windowHeight = window.innerHeight;
+    if (top + popoverHeight > windowHeight - 10) {
+      // 10px buffer
+      // Position ABOVE the button
+      top = rect.top - popoverHeight;
+    }
+
+    // Boundary checks for horizontal
     if (left < 10) left = rect.left;
 
     this.globalPopover.style.top = `${top}px`;
     this.globalPopover.style.left = `${left}px`;
     this.globalPopover.classList.add("show");
+
+    // Clean up inline display style (class handles it)
+    this.globalPopover.style.display = "";
+
+    // Disable table scroll
+    const wrapper = document.querySelector(".table-wrapper");
+    if (wrapper) wrapper.style.overflowY = "hidden";
   },
 
   async handleRepositoryClick(e, row) {
@@ -1346,9 +1386,9 @@ const UIManager = {
     }
 
     return `
-      <tr class="clickable-collection-row" data-collection="${collectionData}">
-        <td><strong>${collection.name}</strong></td>
-        <td>${collection.repos}</td>
+      <tr class="collection-row" data-collection="${collectionData}">
+        <td class="clickable-cell"><strong>${collection.name}</strong></td>
+        <td class="clickable-cell">${collection.repos}</td>
         <td class="actions">
           <div style="display: flex; gap: 5px; align-items: center;">
             ${buttonsHtml}
@@ -1362,10 +1402,15 @@ const UIManager = {
   },
 
   bindCollectionEvents() {
-    // Bind click events for opening collections
-    document.querySelectorAll(".clickable-collection-row").forEach((row) => {
-      row.addEventListener("click", (e) => this.handleCollectionClick(e, row));
-    });
+    // Bind click events for opening collections (only on specific cells)
+    document
+      .querySelectorAll(".collection-row .clickable-cell")
+      .forEach((cell) => {
+        cell.addEventListener("click", (e) => {
+          const row = cell.closest("tr");
+          this.handleCollectionClick(e, row);
+        });
+      });
 
     // Bind IDE Action Buttons for Collections
     document
