@@ -8,7 +8,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/vivekvpai/OpenMate?style=social)](https://github.com/vivekvpai/OpenMate)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/vivekvpai/OpenMate/blob/main/LICENSE)
 
-A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, **Cursor**, **IntelliJ IDEA**, or **PyCharm** with quick shortcuts. Perfect for developers who frequently switch between projects.
+A fast and friendly CLI tool to manage and open your local repositories in **VS Code**, **Windsurf**, **Cursor**, **Antigravity**, **IntelliJ IDEA**, or **PyCharm** with quick shortcuts. Perfect for developers who frequently switch between projects.
 
 > **Note:** In this context, **repository** refers to your **local project folder** stored on your computer, not remote (GitHub/GitLab/Bitbucket) repositories.
 
@@ -109,8 +109,8 @@ om cs <name>                          Open repo/collection in Cursor
 om ij <name>                          Open repo/collection in IntelliJ IDEA
 om pc <name>                          Open repo/collection in PyCharm
 om ag <name>                          Open repo/collection in Antigravity
-om d <name>                           Open repo/collection in preferred IDE
-om <name>                             Alias for `om d <name>` (if preferred IDE is set)
+om <name> -d                        Open repo/collection in LOCAL preferred IDE (falls back to global)
+om <name>                           Open repo/collection in GLOBAL preferred IDE (falls back to local)
 ```
 
 ---
@@ -173,13 +173,25 @@ om ide <name> ws   # Set Windsurf as default
 
 Once a preferred IDE is set, you can use either of these commands:
 
+Once a preferred IDE is set (locally or via global `ide_default`), you can use:
+
 ```bash
-om d <name>
-# or simply
+# Prioritizes GLOBAL default (if set), then falls back to local preference
 om <name>
+
+# Prioritizes LOCAL preference (if set), then falls back to global default
+om <name> -d
+
+# Explicitly open in a specific IDE
+om <name> vs
+om <name> ws
+om <name> cs
+om <name> ij
+om <name> pc
+om <name> ag
 ```
 
-If no preferred IDE is set, `om d` or `om <name>` will warn you and show usage instructions.
+If no preferred IDE is found (neither local nor global), OpenMate will warn you and show usage instructions.
 
 ---
 
@@ -270,22 +282,22 @@ When you run `om list`, it shows all stored repositories and collections:
 
 ```
 Stored repos:
-┌─────┬──────────┬───────────────────────────────┐
-│ #   │ Name     │ Repo Path                     │
-├─────┼──────────┼───────────────────────────────┤
-│ 1   │ repo1    │ C:\Projects\repo1             │
-│ 2   │ repo2    │ C:\Projects\repo2             │
-│ 3   │ repo3    │ C:\Projects\repo3             │
-│ 4   │ repo4    │ C:\Projects\repo4             │
-└─────┴──────────┴───────────────────────────────┘
+┌─────┬──────────┬───────────────────────────────┬─────────────┐
+│ #   │ Name     │ Repo Path                     │ Default IDE │
+├─────┼──────────┼───────────────────────────────┼─────────────┤
+│ 1   │ repo1    │ C:\Projects\repo1             │ VS          │
+│ 2   │ repo2    │ C:\Projects\repo2             │ WS          │
+│ 3   │ repo3    │ C:\Projects\repo3             │             │
+│ 4   │ repo4    │ C:\Projects\repo4             │ CS          │
+└─────┴──────────┴───────────────────────────────┴─────────────┘
 
 Collections:
-┌─────┬────────────────────┬──────────┬───────────────────────────┐
-│ #   │ Name               │ Repos    │ Repository Names          │
-├─────┼────────────────────┼──────────┼───────────────────────────┤
-│ 1   │ collection1        │ 2        │ repo1, repo2              │
-│ 2   │ collection2        │ 2        │ repo3, repo4              │
-└─────┴────────────────────┴──────────┴───────────────────────────┘
+┌─────┬────────────────────┬──────────┬─────────────┬───────────────────────────┐
+│ #   │ Name               │ Repos    │ Default IDE │ Repository Names          │
+├─────┼────────────────────┼──────────┼─────────────┼───────────────────────────┤
+│ 1   │ collection1        │ 2        │ VS          │ repo1, repo2              │
+│ 2   │ collection2        │ 2        │             │ repo3, repo4              │
+└─────┴────────────────────┴──────────┴─────────────┴───────────────────────────┘
 ```
 
 ---
@@ -300,13 +312,13 @@ om list -r
 
 ```
 Stored Repositories:
-┌─────┬──────────┬───────────────────────────────┐
-│ #   │ Name     │ Repo Path                     │
-├─────┼──────────┼───────────────────────────────┤
-│ 1   │ repo1    │ C:\\Projects\\repo1           │
-│ 2   │ repo2    │ C:\\Projects\\repo2           │
-│ 3   │ repo3    │ C:\\Projects\\repo3           │
-└─────┴──────────┴───────────────────────────────┘
+┌─────┬──────────┬───────────────────────────────┬─────────────┐
+│ #   │ Name     │ Repo Path                     │ Default IDE │
+├─────┼──────────┼───────────────────────────────┼─────────────┤
+│ 1   │ repo1    │ C:\\Projects\\repo1           │ VS          │
+│ 2   │ repo2    │ C:\\Projects\\repo2           │ WS          │
+│ 3   │ repo3    │ C:\\Projects\\repo3           │             │
+└─────┴──────────┴───────────────────────────────┴─────────────┘
 ```
 
 ---
@@ -321,12 +333,12 @@ om list -c
 
 ```
 Collections:
-┌─────┬──────────────┬──────────┬───────────────────────────────┐
-│ #   │ Name         │ Repos    │ Repository Names              │
-├─────┼──────────────┼──────────┼───────────────────────────────┤
-│ 1   │ frontend     │ 4        │ repo1, repo2, repo3, repo4    │
-│ 2   │ backend      │ 2        │ repo5, repo6                  │
-└─────┴──────────────┴──────────┴───────────────────────────────┘
+┌─────┬──────────────┬──────────┬─────────────┬───────────────────────────────┐
+│ #   │ Name         │ Repos    │ Default IDE │ Repository Names              │
+├─────┼──────────────┼──────────┼─────────────┼───────────────────────────────┤
+│ 1   │ frontend     │ 4        │ VS          │ repo1, repo2, repo3, repo4    │
+│ 2   │ backend      │ 2        │ IJ          │ repo5, repo6                  │
+└─────┴──────────────┴──────────┴─────────────┴───────────────────────────────┘
 ```
 
 ---

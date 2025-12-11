@@ -11,6 +11,8 @@
  *   om list
  *   om path <name>
  *   om init <name>
+ *   om <name> -d
+ *   om <name>
  */
 
 const fs = require("fs");
@@ -138,7 +140,8 @@ Usage:
     om pc <name>              Open in PyCharm
     om ag <name>              Open in Antigravity IDE
     om ide <name> <ide>       Set preferred IDE (vs, ws, cs, ij, pc, ag)
-    om d <name>               Open in preferred IDE (if set)
+    om <name> -d              Open in preferred IDE (repo-specific or global default)
+    om <name>                 Open in global default IDE (or local if global not set)
 
   Other:
     om --version              Show version`);
@@ -373,8 +376,8 @@ function displayCollectionRepos(collection, store) {
   );
 
   const table = new Table({
-    head: ["#", "Name", "Repo Path"],
-    colWidths: [5, 25, 80],
+    head: ["#", "Name", "Repo Path", "Default IDE"],
+    colWidths: [5, 25, 65, 15],
     style: { head: ["cyan"] },
   });
 
@@ -384,6 +387,7 @@ function displayCollectionRepos(collection, store) {
       index + 1,
       repoName,
       repo ? repo.path : "❌ Repository not found",
+      repo && repo.ide ? repo.ide.toUpperCase() : "",
     ]);
   });
 
@@ -463,8 +467,8 @@ function displayRepositories(repoEntries) {
 
   console.log("Stored repos:");
   const table = new Table({
-    head: ["#", "Name", "Repo Path"],
-    colWidths: [5, 25, 80],
+    head: ["#", "Name", "Repo Path", "Default IDE"],
+    colWidths: [5, 25, 65, 15],
     style: { head: ["cyan"] },
   });
 
@@ -473,8 +477,8 @@ function displayRepositories(repoEntries) {
     .sort(([nameA], [nameB]) =>
       nameA.localeCompare(nameB, undefined, { sensitivity: "base" })
     )
-    .forEach(([name, { path }], index) => {
-      table.push([index + 1, name, path]);
+    .forEach(([name, { path, ide }], index) => {
+      table.push([index + 1, name, path, ide ? ide.toUpperCase() : ""]);
     });
 
   console.log(table.toString());
@@ -493,8 +497,8 @@ function displayCollections(collectionEntries, showRepos) {
   console.log(showRepos ? "Collections:" : "Stored collections:");
 
   const table = new Table({
-    head: ["#", "Name", "Repos", "Repository Names"],
-    colWidths: [5, 20, 10, 50],
+    head: ["#", "Name", "Repos", "Default IDE", "Repository Names"],
+    colWidths: [5, 20, 10, 15, 50],
     style: { head: ["cyan"] },
     wordWrap: true,
   });
@@ -504,12 +508,18 @@ function displayCollections(collectionEntries, showRepos) {
     .sort(([_, { name: nameA }], [__, { name: nameB }]) =>
       nameA.localeCompare(nameB, undefined, { sensitivity: "base" })
     )
-    .forEach(([_, { name, repos }], index) => {
+    .forEach(([_, { name, repos, ide }], index) => {
       // Sort repository names within each collection
       const sortedRepos = [...repos].sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: "base" })
       );
-      table.push([index + 1, name, repos.length, sortedRepos.join(", ")]);
+      table.push([
+        index + 1,
+        name,
+        repos.length,
+        ide ? ide.toUpperCase() : "",
+        sortedRepos.join(", "),
+      ]);
     });
 
   console.log(table.toString());
@@ -814,41 +824,28 @@ function attemptLaunch(candidates, { onFail }) {
     case "ide":
       if (!name || !maybePath) dieUsage();
       return cmdIde(name, maybePath);
-    case "d": {
-      if (!name) dieUsage();
 
-      const store = loadStore();
-      const key = normalizeName(name);
-
-      const repo = store.repos[key];
-      const collection = store.collections[key];
-
-      if (repo || collection) {
-        const preferredIde = repo ? repo.ide : collection.ide;
-        if (preferredIde) {
-          if (collection) {
-            return openCollection(name, preferredIde);
-          }
-          return cmdOpen(name, preferredIde);
-        }
-
-        console.error(`❌ No preferred IDE set for "${name}".`);
-        console.error(`   Use: om ide ${name} <vs|ws|cs|ij|pc|ag>`);
-        process.exit(1);
-      } else {
-        console.error(`❌ "${name}" not found.`);
-        process.exit(1);
-      }
-    }
     default: {
-      // Check if the command is actually a repo or collection name
       const store = loadStore();
       const key = normalizeName(cmd);
       const repo = store.repos[key];
       const collection = store.collections[key];
 
+      // Check for -d flag
+      const useLocalPreference = args[1] === "-d";
+
       if (repo || collection) {
-        const preferredIde = repo ? repo.ide : collection.ide;
+        let preferredIde;
+        if (useLocalPreference) {
+          // Prioritize Local Preference -> Global Default
+          preferredIde =
+            (repo ? repo.ide : collection.ide) || store.ide_default;
+        } else {
+          // Prioritize Global Default -> Local Preference
+          preferredIde =
+            store.ide_default || (repo ? repo.ide : collection.ide);
+        }
+
         if (preferredIde) {
           if (collection) {
             return openCollection(cmd, preferredIde);
