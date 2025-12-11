@@ -25,6 +25,7 @@ const {
   cmdPath,
   cmdIde,
   cmdOpen,
+  cmdShowDefaultIde,
 } = require("../lib/repos");
 const {
   cmdAddToCollection,
@@ -64,6 +65,7 @@ Usage:
     om pc <name>              Open in PyCharm
     om ag <name>              Open in Antigravity IDE
     om ide <name> <ide>       Set preferred IDE (vs, ws, cs, ij, pc, ag)
+    om -ide [name]            Show configured preferred IDE (Global or Repo-specific)
     om <name> -d              Open in preferred IDE (repo-specific or global default)
     om <name>                 Open in global default IDE (or local if global not set)
 
@@ -225,6 +227,8 @@ function cmdList(showRepos = true, showCollections = true) {
     case "ide":
       if (!name || !maybePath) dieUsage();
       return cmdIde(name, maybePath);
+    case "-ide":
+      return cmdShowDefaultIde(name);
 
     default: {
       const store = loadStore();
