@@ -61,15 +61,6 @@ export const rightSideBarConfig={
             {text:"Remove", href:"#remove-c"},
         ]
     },
-    "/docs/collections":{
-        title:"Collections",
-        links:[
-            {text:"Add", href:"#add-c"},
-            {text:"List", href:"#list-c"},
-            {text:"Update", href:"#update-c"},
-            {text:"Remove", href:"#remove-c"},
-        ]
-    },
     "/docs/listing-path-utilities":{
         title:"Listing & Path Utilities.",
         links:[
@@ -99,6 +90,14 @@ export const rightSideBarConfig={
         title:"Data File Storage Format",
         links:[
             {text:"Data file storage", href:"#data-file"},
+        ]
+    },
+    "/docs/mcp":{
+        title:"OpenMate MCP Server.",
+        links:[
+            {text:"Features", href:"#features"},
+            {text:"Installation", href:"#installation"},
+            {text:"Use with editor", href:"#use-with"},
         ]
     },
 

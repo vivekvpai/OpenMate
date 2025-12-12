@@ -12,7 +12,7 @@ function HowDoesItWork()
         </div>
 
         <div className="font-inter text-4xl pl-[37px] pt-8">
-            <h2 id="how-does-it-work?">How does it work<span className="text-red-600">?</span></h2>
+            <h2 id="how-does-it-work">How does it work<span className="text-red-600">?</span></h2>
         </div>
 
         <div className="font-inter pl-[37px] pt-8 text-[22px] font-[300] tracking-wide leading-10.5 pr-[37px]">

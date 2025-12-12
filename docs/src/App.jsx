@@ -265,7 +265,7 @@ function App() {
             </>
           }
         />
-        <Route path="/docs/*" element={<Docs />} />
+        <Route path="docs/*" element={<Docs />} />
       </Routes>
     </>
   );
