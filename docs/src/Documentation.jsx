@@ -1,4 +1,3 @@
-import React from "react";
 import Header from "./components/Header.jsx";
 import { Routes, Route, useLocation,Navigate } from "react-router-dom";
 import Dropdown from "./components/Dropdown.jsx";
@@ -11,10 +10,13 @@ import AddingRemovingRepositories from "./pages/AddingRemovingRepositories.jsx";
 import OpeningProjectsEditors from "./pages/OpeningProjectsEditors.jsx";
 import Collections from "./pages/Collections.jsx";
 import Initialization from "./pages/Initialization.jsx";
+import Mcp from "./pages/Mcp.jsx"
 import CLI from "./pages/CLI.jsx";
 import DataFileStorageFormat from "./pages/DataFileStorageFormat.jsx";
 import { rightSideBarConfig } from "./components/rightSideBarConfig.js";
 import Footer from "./components/Footer.jsx"
+import { useEffect } from "react";
+
 function Documentation() {
   return (
     <>
@@ -27,7 +29,30 @@ function Documentation() {
 
 function AppBody() {
   const location = useLocation();
-  const sidebarData = rightSideBarConfig[location.pathname];
+let sidebarData;
+
+try {
+  sidebarData = rightSideBarConfig[location.pathname];
+
+  if (!sidebarData) {
+    throw new Error("No sidebar config found");
+  }
+} catch (e) {
+  sidebarData = {
+    title: "Overview",
+    links: []
+  };
+}
+
+useEffect(() => {
+  if (location.hash) {
+    const id = location.hash.replace("#", "");
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+}, [location]);
 
   return (
     <div className="flex">
@@ -49,6 +74,7 @@ function AppBody() {
             { label: "Opening Projects/Editors", path: "/docs/opening-projects-editors" },
             { label: "Collections", path: "/docs/collections" },
             { label: "Listing & Path Utilities", path: "/docs/listing-path-utilities" },
+            { label: "OpenMate MCP Server", path: "/docs/mcp" },
           ]}
         />
         <Dropdown
@@ -74,13 +100,15 @@ function AppBody() {
           <Route path="listing-path-utilities" element={<ListingPathUtilities />} />
           <Route path="cli-commands" element={<CLI />} />
           <Route path="data-file-storage-format" element={<DataFileStorageFormat />} />
+          <Route path="mcp" element={<Mcp />} />
         </Routes>
       </div>
 
       {/* Right Sidebar */}
       <div className="flex w-1/5 h-screen">
+      
         {sidebarData ? (
-          <RightSidebar title={sidebarData.title} links={sidebarData.links} />
+          <RightSidebar title={sidebarData.title} links={sidebarData.links} basePath={location.pathname} />
         ) : (
           <RightSidebar title="Overview" links={[]} />
         )}
